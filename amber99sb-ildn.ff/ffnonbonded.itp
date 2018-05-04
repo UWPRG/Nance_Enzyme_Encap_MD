@@ -73,3 +73,6 @@ MW           0       0.0000  0.0000  D   0.00000e+00  0.00000e+00
 ; Dummy masses for rigid CH3 and NH3 groups
 MCH3         0       0.0000  0.0000  A   0.00000e+00  0.00000e+00
 MNH3         0       0.0000  0.0000  A   0.00000e+00  0.00000e+00
+
+; Added by JKS. N4 from GAFF is apparently missing
+N4           7      14.01    0.0000  A   3.25000e-01  7.11280e-01

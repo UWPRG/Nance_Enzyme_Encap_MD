@@ -96,6 +96,8 @@
   HS SH         1    0.13360   229283.2 ; 7,(1986),230; CYS
   S  S          1    0.20380   138908.8 ; 7,(1986),230; CYX   (SCHERAGA)
   CT F          1    0.13800   307105.6 ; 13,(1992),963;CF4; R0=1.332 FOR CHF3
+; Added by JKS. N4 from GAFF is apparently missing
+  CT N4         1    0.14990   245684.5 ; JKS hf 6-31G*
 
 
 
@@ -351,6 +353,11 @@ HS  SH  HS           1    92.070    292.880 ; AA cys
 F   CT  F            1   109.100    644.336 ; JCC,13,(1992),963;
 F   CT  H1           1   109.500    418.400 ; new99
 N   C   N            1   120.000    585.760 ; Added for Urea (same as N2-CA-N2) - EJS
+; Added by JKS.  N4 from GAFF is apparently missing
+CT  CT  N4           1   114.320    539.318 ; JKS hf 6-31G*
+CT  N4  CT           1   110.640    525.845 ; JKS hf 6-31G*
+HP  CT  N4           1   107.910    410.199 ; JKS hf 6-31G*
+
 
 [ dihedraltypes ]
 ;i  j   k  l	 func      phase      kd      pn
@@ -534,6 +541,14 @@ X   X   CA  H5       4      180.00     4.60240     2	; bsd.on C6H6 nmodes
  X   CR  NB  X     9     180.0     20.92000     2  ; JCC,7,(1986),230
  X   CV  NB  X     9     180.0     10.04160     2  ; JCC,7,(1986),230
  X   CW  NA  X     9     180.0      6.27600     2  ; JCC,7,(1986),230
+; Added by JKS.  N4 from GAFF is apparently missing.
+ OS  CT  CT  N4    9       0.0      0.65270     3 ; JKS hf 6-31G*
+ CT  CT  N4  CT    9       0.0      0.65270     3 ; JKS hf 6-31G*
+ H1  CT  CT  N4    9       0.0      0.65270     3 ; JKS hf 6-31G*
+ CT  N4  CT  HP    9       0.0      0.65270     3 ; JKS hf 6-31G*
+ N4  CT  CT  HC    9       0.0      0.65270     3 ; JKS hf 6-31G*
+ N4  CT  CT  C     9       0.0      0.65270     3 ; JKS hf 6-31G*
+
 
 ; Modified amino acid torsions in Amber99SB-ILDN
 ; These should not override the general torsion for the atom types,

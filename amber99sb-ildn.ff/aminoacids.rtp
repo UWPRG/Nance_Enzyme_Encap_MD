@@ -3537,68 +3537,68 @@
 ; PolyEthyleneGlycol (PEG)
 [ mPEG ]
  [ atoms ]
-    C1    CT           0.13393     1
-    H1    H1           0.02946     2
-    H2    H1           0.02946     3
-    H3    H1           0.02946     4
-    O1    OS          -0.46214     5
-    C2    CT           0.20582     6
-    H4    H1           0.01114     7
-    H5    H1           0.01114     8
-    C3    CT           0.33639     9
-    H6    H1          -0.01980    10
-    H7    H1          -0.01980    11
+    CM    CT           0.13393     1
+   HM1    H1           0.02946     2
+   HM2    H1           0.02946     3
+   HM3    H1           0.02946     4
+     O    OS          -0.46214     5
+    C1    CT           0.20582     6
+    H1    H1           0.01114     7
+    H2    H1           0.01114     8
+    C2    CT           0.33639     9
+    H3    H1          -0.01980    10
+    H4    H1          -0.01980    11
  [ bonds ]
+    CM   HM1
+    CM   HM2
+    CM   HM3
+    CM     O
+     O    C1
     C1    H1
     C1    H2
-    C1    H3
-    C1    O1
-    O1    C2
+    C1    C2
+    C2    H3
     C2    H4
-    C2    H5
-    C2    C3
-    C3    H6
-    C3    H7
-    C3   +O2
+    C2    +O
 
 [ PEG ]
  [ atoms ]
-    O2    OS          -0.59159     1
-    C4    CT           0.37365     2
-    H8    H1          -0.01872     3
-    H9    H1          -0.01872     4
-    C5    CT           0.27551     5
-   H10    H1          -0.00851     6
-   H11    H1          -0.00851     7
+     O    OS          -0.59159     1
+    C1    CT           0.37365     2
+    H1    H1          -0.01872     3
+    H2    H1          -0.01872     4
+    C2    CT           0.27551     5
+    H3    H1          -0.00851     6
+    H4    H1          -0.00851     7
  [ bonds ]
-    O2    C4
-    C4    H8
-    C4    H9
-    C4    C5
-    C5   H10
-    C5   H11
-    C5   +O3
+     O    C1
+    C1    H1
+    C1    H2
+    C1    C2
+    C2    H3
+    C2    H4
+    C2    +O
 
 [ PEGo ]
  [ atoms ]
-    O3    OS          -0.62462     1
-    C6    CT           0.41701     2
-   H12    H1          -0.01648     3
-   H13    H1          -0.01648     4
-    C7    CT           0.26550     5
-   H14    H1          -0.00663     6
-   H15    H1          -0.00663     7
-    O4    OH          -0.75658     8
-   H16    HO           0.45670     9
+     O    OS          -0.62462     1
+    C1    CT           0.41701     2
+    H1    H1          -0.01648     3
+    H2    H1          -0.01648     4
+    C2    CT           0.26550     5
+    H3    H1          -0.00663     6
+    H4    H1          -0.00663     7
+    OH    OH          -0.75658     8
+    HO    HO           0.45670     9
  [ bonds ]
-    O3    C6
-    C6   H12
-    C6   H13
-    C6    C7
-    C7   H14
-    C7   H15
-    C7    O4
-    O4   H16
+     O    C1
+    C1    H1
+    C1    H2
+    C1    C2
+    C2    H3
+    C2    H4
+    C2    OH
+    OH    HO
 
 ; PolyCarboxyBetaineMethAcrylate (PCBMA)
 [ sCAP ]

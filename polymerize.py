@@ -1,5 +1,8 @@
-import mdtraj as md
+import math
 import os.path as op
+
+import numpy as np
+import mdtraj as md
 
 # specify path to starting configuration file
 data_dir = op.join(op.dirname(__file__), 'conf_data/')
@@ -12,7 +15,9 @@ end_cap_name = 'PEGo'
 
 # three reference atoms to translate and rotate monomer
 # to polymerization
-ref_atom_names = ['O', 'C1', 'C2']
+ref_atom_names = ['resname mPEG and name O',
+                  'resname PEG and name O',
+                  'resname PEGo and name O']
 # read conf_file with mdtraj
 monomer = md.load(conf_file)
 coordinates = monomer.xyz[0]
@@ -23,9 +28,57 @@ start_cap = topology.select(f'resname {start_cap_name}')
 repeat = topology.select(f'resname {repeat_name}')
 end_cap = topology.select(f'resname {end_cap_name}')
 
-ref_atoms = [coordinates[topology.select('resname {} and name {}'
-                                         ''.format(repeat_name, ref_atom))]
+ref_atoms = [topology.select(f'{ref_atom}')
              for ref_atom in ref_atom_names]
 
-# TODO: polymerize
+# TODO: POLYMERIZE
+# translate so the first ref atom is at the origin
+coordinates -= coordinates[ref_atoms[0]]
 
+
+# pivot around ref_atom[0] so third ref atom is on the x axis z=0
+def rotate(coords, axis, theta):
+    """
+    Return the new coordinates after counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    axis = axis / np.linalg.norm(axis)
+    a = math.cos(theta / 2.0)
+    b, c, d = -axis * math.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    rotation = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                         [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                         [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+    return np.dot(coords, rotation.T)
+
+
+# calculate normal vector and angle between vector defined by
+# ref_atoms[0] and ref_atoms[2] and the target orientation
+original = coordinates[ref_atoms[2]]
+target = np.array([1, 0, 0])
+normal = np.cross(original, target)[0]
+angle = math.acos(np.dot(original, target)
+                  / (np.linalg.norm(original) * np.linalg.norm(target)))
+# rotate coordinates
+coordinates = rotate(coordinates, normal, angle)
+
+# rotate so second ref atom has z=0
+original = np.array([0,
+                     coordinates[ref_atoms[1]][0, 1],
+                     coordinates[ref_atoms[1]][0, 2]])
+original = original.reshape(1, 3)
+target = np.array([0, 1, 0])
+normal = np.cross(original, target)[0]
+angle = math.acos(np.dot(original, target)
+                  / (np.linalg.norm(original) * np.linalg.norm(target)))
+# rotate coordinates
+coordinates = rotate(coordinates, normal, angle)
+# todo: create new monomer, with monomer len x direction translation
+#   todo: flip if necessary (around ref[0] ref[2] axis, translate by ref[0].y - ref[1].y
+# todo: repeat previous 2 todos
+# todo: add end cap
+
+monomer.xyz[0] = coordinates
+monomer.save_pdb('new.pdb')

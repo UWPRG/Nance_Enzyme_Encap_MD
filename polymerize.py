@@ -2,6 +2,7 @@ import math
 import os.path as op
 
 import numpy as np
+import pandas as pd
 import mdtraj as md
 
 # specify path to starting configuration file
@@ -11,6 +12,8 @@ conf_file = op.join(data_dir, 'PEG.pdb')
 # unique residue types in conf_file
 start_cap_name = 'mPEG'
 repeat_name = 'PEG'
+n = 30  # number of repeat monomers
+flip_repeat = np.pi  # angle to rotate each repeat unit
 end_cap_name = 'PEGo'
 
 # three reference atoms to translate and rotate monomer
@@ -22,6 +25,7 @@ ref_atom_names = ['resname mPEG and name O',
 monomer = md.load(conf_file)
 coordinates = monomer.xyz[0]
 topology = monomer.topology
+table, bonds = topology.to_dataframe()
 
 # select atom IDs for each unique segment
 start_cap = topology.select(f'resname {start_cap_name}')
@@ -75,10 +79,68 @@ angle = math.acos(np.dot(original, target)
                   / (np.linalg.norm(original) * np.linalg.norm(target)))
 # rotate coordinates
 coordinates = rotate(coordinates, normal, angle)
-# todo: create new monomer, with monomer len x direction translation
-#   todo: flip if necessary (around ref[0] ref[2] axis, translate by ref[0].y - ref[1].y
-# todo: repeat previous 2 todos
-# todo: add end cap
 
-monomer.xyz[0] = coordinates
-monomer.save_pdb('new.pdb')
+# add positional data to table
+table['x'] = coordinates[:, 0]
+table['y'] = coordinates[:, 1]
+table['z'] = coordinates[:, 2]
+
+# list to hold residue dataframes
+my_polymer = [table.iloc[start_cap]]
+
+# get x and y values for repeat translation
+x_shift, y_shift, _ = (coordinates[ref_atoms[2]]
+                       - coordinates[ref_atoms[1]])[0]
+# append repeats to my_polymer
+for repeat_idx in range(0, n):
+    indices = [i + repeat_idx * len(repeat)
+               for i in repeat]
+    # copy monomer info from original table
+    new_monomer = pd.DataFrame(table.iloc[repeat].values,
+                               index=indices,
+                               columns=table.columns)
+
+    # translate the coordinates, and flip if necessary
+    new_monomer.x += x_shift * repeat_idx
+    if flip_repeat and repeat_idx % 2 == 1:
+        # translate in the y direction
+        new_monomer.y += y_shift
+        # flip around ref2 - ref0 axis
+        axis = (coordinates[ref_atoms[2]]
+                - coordinates[ref_atoms[0]])[0]
+        flipped = rotate(new_monomer.loc[:, ['x', 'y', 'z']].values,
+                         axis, flip_repeat)
+        new_monomer[['x', 'y', 'z']] = flipped
+
+    new_monomer.serial += repeat_idx * len(repeat)
+    new_monomer.resSeq += repeat_idx
+    my_polymer.append(new_monomer)
+
+# Add capping group
+indices = [i + (n - 1) * len(repeat)
+           for i in end_cap]
+# copy end_cap info from original table
+new_cap = pd.DataFrame(table.iloc[end_cap].values,
+                           index=indices,
+                           columns=table.columns)
+
+# translate the coordinates, and flip if necessary
+new_cap.x += x_shift * (n - 1)
+if n % 2 == 1:
+    # translate by y distance from reference axis
+    new_cap.y += y_shift
+    # flip around ref2 - ref0 axis
+    axis = (coordinates[ref_atoms[2]]
+            - coordinates[ref_atoms[0]])[0]
+    flipped = rotate(new_cap.loc[:, ['x', 'y', 'z']].values,
+                     axis, flip_repeat)
+    new_cap[['x', 'y', 'z']] = flipped
+
+new_cap.serial += (n - 1) * len(repeat)
+new_cap.resSeq += (n - 1)
+
+# convert list to polymer DataFrame
+my_polymer.append(new_cap)
+polymer = pd.concat(my_polymer)
+
+# todo: write to pdb file

@@ -8,6 +8,7 @@ import mdtraj as md
 # specify path to starting configuration file
 data_dir = op.join(op.dirname(__file__), 'conf_data/')
 conf_file = op.join(data_dir, 'PEG.pdb')
+outfile = 'polymer.pdb'
 
 # unique residue types in conf_file
 start_cap_name = 'mPEG'
@@ -143,4 +144,12 @@ new_cap.resSeq += (n - 1)
 my_polymer.append(new_cap)
 polymer = pd.concat(my_polymer)
 
-# todo: write to pdb file
+# todo: fix string format for pdb
+pdb_lines = [f'ATOM{     a.serial}{   a.name}{ a.resName}{    a.resSeq}{      a.x}{ a.y}{   a.z}'
+             for idx, a in polymer.iterrows()]
+pdb_string = '\n'.join(pdb_lines)
+
+
+full_out_path = op.join(data_dir, outfile)
+with open(full_out_path, "w") as text_file:
+    print(pdb_string, file=text_file)

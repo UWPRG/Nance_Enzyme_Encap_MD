@@ -3603,7 +3603,7 @@
 ; PolyCarboxyBetaineMethAcrylate (PCBMA)
 [ sCAP ]
  [ atoms ]
-    C2    CT          -0.20918     1
+    C2    CT          -0.16296     1 ; changed from -0.20918 to neutralize
     H1    HC           0.05432     2
     H2    HC           0.05432     3
     H3    HC           0.05432     4
@@ -3623,7 +3623,7 @@
     H3    HC           0.08693    14
     H4    HC           0.08693    15
     H5    HC           0.08693    16
-    C4    C            0.83900    17
+    C4    C            0.70655    17 ; decreased from 0.839 to neutralize monomer
     O1    O           -0.61970    18
     O2    OS          -0.48371    19
     C5    CT           0.00503    20
@@ -3689,7 +3689,7 @@
 
 [ eCAP ]
  [ atoms ]
-    C1    CT          -0.34703     1
+    C1    CT          -0.26079     1 ; changed from -0.34703 to neutralize
     H1    HC           0.08693     2
     H2    HC           0.08693     3
     H3    HC           0.08693     4

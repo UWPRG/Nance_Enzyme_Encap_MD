@@ -7,21 +7,24 @@ import mdtraj as md
 
 # specify path to starting configuration file
 data_dir = op.join(op.dirname(__file__), 'conf_data/')
-conf_file = op.join(data_dir, 'PEG.pdb')
-outfile = 'polymer.pdb'
+conf_file = op.join(data_dir, 'PCB.pdb')
+outfile = 'PCB_30.pdb'
 
 # unique residue types in conf_file
-start_cap_name = 'mPEG'
-repeat_name = 'PEG'
-n = 5  # number of repeat monomers
-flip_repeat = np.pi  # angle to rotate each repeat unit
-end_cap_name = 'PEGo'
+start_cap_name = 'sCAP'
+repeat_name = 'PCB'
+n = 30  # number of repeat monomers
+flip_repeat = np.pi/2  # angle to rotate each repeat unit
+end_cap_name = 'eCAP'
+# add rotation for bulky sidechains
 
 # three reference atoms to translate and rotate monomer
 # to polymerization
-ref_atom_names = ['resname mPEG and name O',
-                  'resname PEG and name O',
-                  'resname PEGo and name O']
+ref_atom_names = ['resname sCAP and name C2',
+                  'resname PCB and name C1',
+                  'resname PCB and name C2',
+                  'resname eCAP and name C1']
+
 # read conf_file with mdtraj
 monomer = md.load(conf_file)
 coordinates = monomer.xyz[0]
@@ -89,8 +92,10 @@ table['z'] = coordinates[:, 2] * 10
 my_polymer = [table.iloc[start_cap]]
 
 # get x and y values for repeat translation
-x_shift, y_shift, _ = (coordinates[ref_atoms[2]]
-                       - coordinates[ref_atoms[1]])[0] * 10
+x_shift = (coordinates[ref_atoms[3]]
+           - coordinates[ref_atoms[1]])[0, 0] * 10
+y_shift = (coordinates[ref_atoms[2]]
+           - coordinates[ref_atoms[1]])[0, 1] * 10
 # 4. append repeats to my_polymer
 for repeat_idx in range(0, n):
     indices = [i + repeat_idx * len(repeat)
@@ -144,7 +149,7 @@ my_polymer.append(new_cap)
 polymer = pd.concat(my_polymer)
 
 pdb_lines = [f'ATOM  {atom.serial:>5} {atom.name:<4} {atom.resName:>4} '
-             f'{atom.resSeq:>4}  {atom.x:>8.3f}{atom.y:>8.3f}{atom.z:>8.3f}'
+             f'{atom.resSeq:>4}{atom.x:>11.3f}{atom.y:>8.3f}{atom.z:>8.3f}'
              for atom in polymer.itertuples()]
 
 pdb_string = '\n'.join(pdb_lines)

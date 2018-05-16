@@ -4,11 +4,11 @@ from io import StringIO
 import pandas as pd
 
 
-data_dir = op.join(op.dirname(__file__), 'top_data/PCB/')
+data_dir = op.join(op.dirname(__file__), 'top_data/MEO/')
 ff_dir = op.join(op.dirname(__file__), 'amber99sb-ildn.ff/')
 
 # give file names for topology and force field
-polymer_topolgy = op.join(data_dir, 'PCB_GMX.top')
+polymer_topolgy = op.join(data_dir, 'MEO_GMX.top')
 force_field_nonbonded = op.join(ff_dir, 'ffnonbonded.itp')
 force_field_bonded = op.join(ff_dir, 'ffbonded.itp')
 
@@ -17,12 +17,11 @@ cap0 = {'name': 'sCAP',
         'list': ['C2', 'H3', 'H4', 'H5']
         }
 
-monomer = {'name': 'PCB',
+monomer = {'name': 'MEO',
            'list': ['C1', 'H1', 'H2', 'C3', 'C5', 'H9', 'H10', 'H11',
                     'C6', 'O1', 'O2', 'C7', 'H12', 'H13', 'C8', 'H14',
-                    'H15', 'N1', 'C9', 'H16', 'H17', 'H18', 'C10',
-                    'H19', 'H20', 'H21', 'C11', 'H22', 'H23', 'C12',
-                    'H24', 'H25', 'C13', 'O3', 'O4']
+                    'H15', 'O3', 'C9', 'H16', 'H17', 'C10', 'H18', 'H19',
+                    'O4', 'C11', 'H20', 'H21', 'H22']
            }
 
 cap2 = {'name': 'eCAP',

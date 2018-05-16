@@ -205,9 +205,10 @@ OH	Ion
 Cal	Ion
 IB+	Ion
 ; Added for PCB/PEG study, Smith 2018
-mPEG    polymer
-PEG     polymer
-PEGo    polymer
-sCAP    polymer
-PCB     polymer
-eCAP    polymer
+mPEG    Polymer
+PEG     Polymer
+PEGo    Polymer
+sCAP    Polymer
+PCB     Polymer
+eCAP    Polymer
+MEO     Polymer

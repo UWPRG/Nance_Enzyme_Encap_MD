@@ -4,30 +4,26 @@ from io import StringIO
 import pandas as pd
 
 
-data_dir = op.join(op.dirname(__file__), 'top_data/MEO/')
-ff_dir = op.join(op.dirname(__file__), 'amber99sb-ildn.ff/')
+data_dir = op.join(op.dirname(__file__), '/suppscr/pfaendtner/cnyambura/NEE_home/BSA_Nano_Prep/PEG_chain/ffmaker_PEG')
+ff_dir = op.join(op.dirname(__file__), '/suppscr/pfaendtner/cnyambura/NEE_home/BSA_Nano_Prep/polymer_force_field/conf_data/MOD_n_amber99sb-ildn.ff/')
 
 # give file names for topology and force field
-polymer_topolgy = op.join(data_dir, 'MEO_GMX.top')
+polymer_topolgy = op.join(data_dir, 'PEG_GMX.top')
 force_field_nonbonded = op.join(ff_dir, 'ffnonbonded.itp')
 force_field_bonded = op.join(ff_dir, 'ffbonded.itp')
 
 
-cap0 = {'name': 'sCAP',
-        'list': ['C2', 'H3', 'H4', 'H5']
-        }
+cap2 = {'name': 'tPEG',
+        'list': ['O3','C5','H10','H11','C6','H12','H13','O4','H14']
+	}
 
-monomer = {'name': 'MEO',
-           'list': ['C1', 'H1', 'H2', 'C3', 'C5', 'H9', 'H10', 'H11',
-                    'C6', 'O1', 'O2', 'C7', 'H12', 'H13', 'C8', 'H14',
-                    'H15', 'O3', 'C9', 'H16', 'H17', 'C10', 'H18', 'H19',
-                    'O4', 'C11', 'H20', 'H21', 'H22']
+monomer = {'name': 'PEG',
+           'list': ['O2','C3','H6','H7','C4','H8','H9']
            }
 
-cap2 = {'name': 'eCAP',
-        'list': ['C4', 'H6', 'H7', 'H8']
+cap0 = {'name': 'sPEG',
+        'list': ['H1','O1','C1','H2','H3','C2','H4','H5']
         }
-
 
 # read file into string for parsing
 def parse_topology(filename, section, header):
@@ -145,7 +141,7 @@ for new_residue in atoms['restype'].unique():
         charge = row['charge']
         id = row['nr'] - start_index
 
-        row_string = f'{name:>6}    {ff_type:<3}{charge:17.5f} {id:5}\n'
+        row_string = f"{name:>6}    {ff_type:<3}{charge:17.5f} {id:5}\n"
         res_string.append(row_string)
 
     res_string.append(' [ bonds ]\n')

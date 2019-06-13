@@ -1,5 +1,0 @@
-; to test
-; grompp -f em.mdp -c PEG_GMX.gro -p PEG_GMX.top -o em.tpr -v
-; mdrun -v -deffnm em
-integrator               = steep
-nsteps                   = 500

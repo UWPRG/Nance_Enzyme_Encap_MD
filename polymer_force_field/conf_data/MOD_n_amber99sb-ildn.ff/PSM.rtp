@@ -1,0 +1,382 @@
+[ bondedtypes ]
+; Column 1 : default bondtype
+; Column 2 : default angletype
+; Column 3 : default proper dihedraltype
+; Column 4 : default improper dihedraltype
+; Column 5 : This controls the generation of dihedrals from the bonding.
+;            All possible dihedrals are generated automatically. A value of
+;            1 here means that all these are retained. A value of
+;            0 here requires generated dihedrals be removed if
+;              * there are any dihedrals on the same central atoms
+;                specified in the residue topology, or
+;              * there are other identical generated dihedrals
+;                sharing the same central atoms, or
+;              * there are other generated dihedrals sharing the
+;                same central bond that have fewer hydrogen atoms
+; Column 6 : number of neighbors to exclude from non-bonded interactions
+; Column 7 : 1 = generate 1,4 interactions between pairs of hydrogen atoms
+;            0 = do not generate such
+; Column 8 : 1 = remove proper dihedrals if found centered on the same
+;                bond as an improper dihedral
+;            0 = do not generate such
+; bonds  angles  dihedrals  impropers all_dihedrals nrexcl HH14 RemoveDih
+     1       1          9          4        1         3      1     0
+
+;Monomer PS charges were calculated in gaussian, and were replicated for both terminal groups.
+;Made by Chris Nyambura
+
+
+; Polystyrene - this is an internal residue 
+[ PSM ] 
+ [ atoms ]
+   CS1    CT           0.019819     1
+  HS11    HC           0.024043     2
+   CS2    CA           0.246077     3
+   CS3    CA          -0.247658     4
+  HS31    HA           0.132967     5
+   CS4    CA          -0.113667     6
+  HS41    HA           0.135033     7
+   CS5    CA          -0.179413     8
+  HS51    HA           0.140621     9
+   CS6    CA          -0.113667     10
+  HS61    HA           0.135033     11
+   CS7    CA          -0.247658     12
+  HS71    HA           0.132967     13
+   CS8    CT          -0.042334     14
+  HS81    HC           0.024105     15
+  HS82    HC           0.024105     16 
+ [ bonds ]    
+  CS1     -CS8
+  CS1     CS2
+  CS1     HS11
+  CS1     CS8
+  CS8     HS81
+  CS8     HS82
+  CS8     +CS1
+  CS2     CS3
+  CS2     CS7
+  CS3     HS31
+  CS3     CS4
+  CS4     HS41
+  CS5     CS4
+  CS5     HS51
+  CS5     CS6 
+  CS6     HS61
+  CS6     CS7
+  CS7     HS71
+ [ impropers ]
+   CS1    CS7    CS2    CS3
+   CS2    CS6    CS7    HS71
+   CS2    CS4    CS3    HS31
+   CS7    CS5    CS6    HS61
+   CS3    CS5    CS4    HS41
+   CS6    CS4    CS5    HS51
+
+;Terminal PS residue ("beginning" of chain)
+; designation arbitrary, C1 is -CH3
+[ cPS ]
+ [ atoms ]
+   C1     CT          -0.132745     1 
+   H11    HC           0.031540     2
+   H12    HC           0.031540     3
+   H13    HC           0.031540     4
+   C2     CT          -0.042334     5
+   H21    HC           0.024105     6
+   H22    HC           0.024105     7
+   CS1    CT           0.019819     8
+  HS11    HC           0.024043     9
+   CS2    CA           0.246077     10
+   CS3    CA          -0.247658     11
+  HS31    HA           0.132967     12
+   CS4    CA          -0.113667     13
+  HS41    HA           0.135033     14
+   CS5    CA          -0.179413     15
+  HS51    HA           0.140621     16
+   CS6    CA          -0.113667     17
+  HS61    HA           0.135033     18
+   CS7    CA          -0.247658     19
+  HS71    HA           0.132967     20
+   CS8    CT          -0.042334     21
+  HS81    HC           0.024105     22
+  HS82    HC           0.024105     23 
+ [ bonds ]
+   C1     H11
+   C1     H12
+   C1     H13
+   C1     C2
+   C2     H21
+   C2     H22
+   C2     CS1
+  CS1     HS11
+  CS1     CS2
+  CS1     CS8
+  CS2     CS3
+  CS2     CS7
+  CS3     HS31
+  CS3     CS4
+  CS4     HS41
+  CS5     CS4
+  CS5     HS51
+  CS5     CS6 
+  CS6     HS61
+  CS6     CS7
+  CS7     CS2
+  CS7     HS71
+  CS8     HS81
+  CS8     HS82
+  CS8     +CS1
+ [ impropers ]
+   CS1    CS7    CS2    CS3
+   CS2    CS6    CS7    HS71
+   CS2    CS4    CS3    HS31
+   CS7    CS5    CS6    HS61
+   CS3    CS5    CS4    HS41
+   CS6    CS4    CS5    HS51
+
+;Terminal PS residue ("end" of chain)
+; designation arbitrary, C2 is -CH3
+[ PSc ]
+ [ atoms ]
+   C2     CT          -0.132745     1
+   H21    HC           0.031540     2
+   H22    HC           0.031540     3
+   H23    HC           0.031540     4
+   CS1    CT           0.019819     5
+  HS11    HC           0.024043     6
+   CS2    CA           0.246077     7
+   CS3    CA          -0.247658     8
+  HS31    HA           0.132967     9
+   CS4    CA          -0.113667     10
+  HS41    HA           0.135033     11
+   CS5    CA          -0.179413     12
+  HS51    HA           0.140621     13
+   CS6    CA          -0.113667     14
+  HS61    HA           0.135033     15
+   CS7    CA          -0.247658     16
+  HS71    HA           0.132967     17
+   CS8    CT          -0.042334     18
+  HS81    HC           0.024105     19
+  HS82    HC           0.024105     20 
+ [ bonds ]
+  CS1     -CS8
+  CS1     HS11
+  CS1     CS2
+  CS1     CS8
+  CS8     HS81 
+  CS8     HS82
+  CS8     C2
+  C2      H21
+  C2      H22
+  C2      H23
+  CS2     CS3
+  CS2     CS7
+  CS7     HS71
+  CS3     HS31
+  CS3     CS4
+  CS4     HS41
+  CS5     CS4
+  CS5     HS51
+  CS5     CS6 
+  CS6     HS61
+  CS6     CS7
+ [ impropers ]
+   CS1    CS7    CS2    CS3
+   CS2    CS6    CS7    HS71
+   CS2    CS4    CS3    HS31
+   CS7    CS5    CS6    HS61
+   CS3    CS5    CS4    HS41
+   CS6    CS4    CS5    HS51
+
+;PLGA monomer unit( 1 LA and 1 GA units in monomer)
+
+; For this internal monomer, the atom C5 is labeled the same as the atom C5 in tPLG
+; because when running gmx_mpi pdb2gmx for longer length polymer chains,
+; gromacs will form the correct number of bonds in the resulting topol.top file
+
+; Need to check the validity of charges with respect to simulated systems, charges calculated on 
+; a trimer of PLGA (3 LA and 3 GA units in total) using old version of Gaussian 09 
+
+[ PLG ]
+ [ atoms ]
+    O5    OS          -0.57735     1
+    C6    C            0.85272     2
+    O6    O           -0.59998     3
+    C7    CT           0.37636     4
+    O7    OS          -0.62374     5
+    C8    C            0.92255     6
+    O8    O           -0.59484     7
+    C5    CT          -0.07088     8 ; C5 was orginally C9
+   C15    CT          -0.29948     9
+    H9    H1           0.02338    10
+   H10    H1           0.12460    11
+   H11    H1           0.12460    12
+   H18    HC           0.09505    13
+   H19    HC           0.09505    14
+   H20    HC           0.09505    15
+ [ bonds ]
+   +C5    O5
+    O5    C6
+    C6    O6
+    C6    C7
+    C7    O7
+    C7   C15
+    C7    H9
+    O7    C8
+    C8    O8
+    C8    C5
+    C5   -O5  ; C5 was originally C9 
+    C5   H10  ; C5 was orginially C9
+    C5   H11  ; C5 was originally C9
+   C15   H18
+   C15   H19
+   C15   H20
+
+;Starting PLGA terminal monomer( 1 LA and 1 GA, OH capped)
+[ sPLG ]
+ [ atoms ]
+    O9    OS          -0.52009     1
+   C10    C            0.88435     2
+   O10    O           -0.59249     3
+   C11    CT           0.29802     4
+   O11    OS          -0.66747     5
+   C12    C            0.93799     6
+   O12    O           -0.56420     7
+   C13    CT           0.07770     8
+   O13    OH          -0.71548     9
+    H2    HO           0.47209    10
+   C14    CT          -0.26649    11
+   H12    H1           0.02819    12
+   H13    H1           0.05565    13
+   H14    H1           0.05565    14
+   H15    HC           0.08801    15
+   H16    HC           0.08801    16
+   H17    HC           0.08801    17
+ [ bonds ]
+   +C5    O9
+    O9   C10
+   C10   O10
+   C10   C11
+   C11   O11
+   C11   C14
+   C11   H12
+   O11   C12
+   C12   O12
+   C12   C13
+   C13   O13
+   C13   H13
+   C13   H14
+   O13    H2
+   C14   H15
+   C14   H16
+   C14   H17
+
+; Ending PLGA monomer (1 LA and 1 GA units, OH capped)
+[ tPLG ]
+ [ atoms ]
+    O1    OH          -0.69595     1
+    H1    HO           0.49592     2
+    C1    C            0.64714     3
+    O2    O           -0.56329     4
+    C2    CT           0.59906     5
+    C3    CT          -0.43775     6
+    O3    OS          -0.67869     7
+    C4    C            0.89725     8
+    O4    O           -0.58716     9
+    C5    CT           0.05616    10
+    H3    H1          -0.01065    31
+    H4    HC           0.12488    32
+    H5    HC           0.12488    33
+    H6    HC           0.12488    34
+    H7    H1           0.10639    35
+    H8    H1           0.10639    36
+ [ bonds ]
+    O1    H1
+    O1    C1
+    C1    O2
+    C1    C2
+    C2    C3
+    C2    O3
+    C2    H3
+    C3    H4
+    C3    H5
+    C3    H6
+    O3    C4
+    C4    O4
+    C4    C5
+    C5   -O5
+    C5    H7
+    C5    H8
+
+
+; PEG strarting monomer charges coming from PEG trimer OH capped Gaussian calculation 
+; Still need to check validity of charges with respect to simulated systems 
+
+; Starting terminus is OH capped
+[ sPEG ]
+ [ atoms ]
+    H1    HO           0.45022     1
+    O1    OH          -0.74979     2
+    C1    CT           0.29343     3
+    H2    H1          -0.01122     4
+    H3    H1          -0.01122     5
+    C2    CT           0.35048     6
+    H4    H1          -0.00453     7
+    H5    H1          -0.00453     8
+ [ bonds ]
+    H1    O1
+    O1    C1
+    C1    H2
+    C1    H3
+    C1    C2
+    C2    H4
+    C2    H5
+    C2   +O2
+
+; For this internal monomer, the atom C2 is labeled the smae as the atom C2 in sPEG 
+; because when running gmx_mpi pdb2gmx for longer length polymer chains,
+; gromacs will form the correct number of bonds in the resulting topol.top file
+  
+;PEG monomer
+[ PEG ]
+ [ atoms ]
+    O2    OS          -0.60937     1
+    C3    CT           0.33476     2
+    H6    H1          -0.01911     3
+    H7    H1          -0.01911     4
+    C2    CT           0.33476     5   ;C2 was originally C4
+    H8    H1          -0.01911     6
+    H9    H1          -0.01911     7
+ [ bonds ]
+   -C2    O2
+    O2    C3
+    C3    H6
+    C3    H7
+    C3    C2
+    C2    H8    ;C2 was originally C4
+    C2    H9    ;C2 was orginially C4
+    C2   +O2    ;C2 was originally C4
+
+
+;Ending PEG terminus, OH capped 
+[ tPEG ]
+ [ atoms ]
+    O3    OS          -0.60937     1
+    C5    CT           0.35048     2
+   H10    H1          -0.00453     3
+   H11    H1          -0.00453     4
+    C6    CT           0.29343     5
+   H12    H1          -0.01122     6
+   H13    H1          -0.01122     7
+    O4    OH          -0.74979     8
+   H14    HO           0.45022     9
+ [ bonds ]
+   -C2    O3
+    O3    C5
+    C5   H10
+    C5   H11
+    C5    C6
+    C6   H12
+    C6   H13
+    C6    O4
+    O4   H14
+

@@ -1,0 +1,12 @@
+[ eCAP ]
+ [ atoms ]
+    C4    CT          -0.34703     1
+    H6    HC           0.08693     2
+    H7    HC           0.08693     3
+    H8    HC           0.08693     4
+ [ bonds ]
+   -C3    C4
+    C4    H6
+    C4    H7
+    C4    H8
+

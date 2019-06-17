@@ -29,22 +29,22 @@
 ; Polystyrene - this is an internal residue, modified charges sum to zero  
 [ PSM ] 
  [ atoms ]
-   CS1    CT           0.01542    1
-  HS11    HC           0.01964    2
-   CS2    CA           0.24168    3
-   CS3    CA          -0.25206    4
-  HS31    HA           0.12857    5
-   CS4    CA          -0.11807    6
-  HS41    HA           0.13063    7
-   CS5    CA          -0.18381    8
-  HS51    HA           0.13622    9
-   CS6    CA          -0.11807   10
-  HS61    HA           0.13063   11
-   CS7    CA          -0.25206   12
-  HS71    HA           0.12857   13
-   CS8    CT          -0.04673   14
-  HS81    HC           0.01971   15
-  HS82    HC           0.01971   16 
+   CS1    CT           0.01542     1
+  HS11    HC           0.01964     2
+   CS2    CA           0.24168     3
+   CS3    CA          -0.25206     4
+  HS31    HA           0.12857     5
+   CS4    CA          -0.11807     6
+  HS41    HA           0.13063     7
+   CS5    CA          -0.18381     8
+  HS51    HA           0.13622     9
+   CS6    CA          -0.11807    10
+  HS61    HA           0.13063    11
+   CS7    CA          -0.25206    12
+  HS71    HA           0.12857    13
+   CS8    CT          -0.04673    14
+  HS81    HC           0.01971    15
+  HS82    HC           0.01971    16 
  [ bonds ]    
   CS1     -CS8
   CS1     CS2

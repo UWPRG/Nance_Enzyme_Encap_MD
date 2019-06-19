@@ -26,25 +26,25 @@
 ;Made by Chris Nyambura
 
 
-; Polystyrene - this is an internal residue 
+; Polystyrene - this is an internal residue, modified charges sum to zero  
 [ PSM ] 
  [ atoms ]
-   CS1    CT           0.019819     1
-  HS11    HC           0.024043     2
-   CS2    CA           0.246077     3
-   CS3    CA          -0.247658     4
-  HS31    HA           0.132967     5
-   CS4    CA          -0.113667     6
-  HS41    HA           0.135033     7
-   CS5    CA          -0.179413     8
-  HS51    HA           0.140621     9
-   CS6    CA          -0.113667     10
-  HS61    HA           0.135033     11
-   CS7    CA          -0.247658     12
-  HS71    HA           0.132967     13
-   CS8    CT          -0.042334     14
-  HS81    HC           0.024105     15
-  HS82    HC           0.024105     16 
+   CS1    CT           0.01542     1
+  HS11    HC           0.01964     2
+   CS2    CA           0.24168     3
+   CS3    CA          -0.25206     4
+  HS31    HA           0.12857     5
+   CS4    CA          -0.11807     6
+  HS41    HA           0.13063     7
+   CS5    CA          -0.18381     8
+  HS51    HA           0.13622     9
+   CS6    CA          -0.11807    10
+  HS61    HA           0.13063    11
+   CS7    CA          -0.25206    12
+  HS71    HA           0.12857    13
+   CS8    CT          -0.04673    14
+  HS81    HC           0.01971    15
+  HS82    HC           0.01971    16 
  [ bonds ]    
   CS1     -CS8
   CS1     CS2
@@ -72,33 +72,35 @@
    CS3    CS5    CS4    HS41
    CS6    CS4    CS5    HS51
 
+
 ;Terminal PS residue ("beginning" of chain)
-; designation arbitrary, C1 is -CH3
+; designation arbitrary, C1 is -CH3, modified charges sum to zero 
+
 [ cPS ]
  [ atoms ]
-   C1     CT          -0.132745     1 
-   H11    HC           0.031540     2
-   H12    HC           0.031540     3
-   H13    HC           0.031540     4
-   C2     CT          -0.042334     5
-   H21    HC           0.024105     6
-   H22    HC           0.024105     7
-   CS1    CT           0.019819     8
-  HS11    HC           0.024043     9
-   CS2    CA           0.246077     10
-   CS3    CA          -0.247658     11
-  HS31    HA           0.132967     12
-   CS4    CA          -0.113667     13
-  HS41    HA           0.135033     14
-   CS5    CA          -0.179413     15
-  HS51    HA           0.140621     16
-   CS6    CA          -0.113667     17
-  HS61    HA           0.135033     18
-   CS7    CA          -0.247658     19
-  HS71    HA           0.132967     20
-   CS8    CT          -0.042334     21
-  HS81    HC           0.024105     22
-  HS82    HC           0.024105     23 
+   C1     CT          -0.13440     1 
+   H11    HC           0.02988     2
+   H12    HC           0.02988     3
+   H13    HC           0.02988     4
+   C2     CT          -0.04399     5
+   H21    HC           0.02245     6
+   H22    HC           0.02245     7
+   CS1    CT           0.01816     8
+  HS11    HC           0.02239     9
+   CS2    CA           0.24442    10
+   CS3    CA          -0.24932    11
+  HS31    HA           0.13131    12
+   CS4    CA          -0.11532    13
+  HS41    HA           0.13338    14
+   CS5    CA          -0.18107    15
+  HS51    HA           0.13896    16
+   CS6    CA          -0.11532    17
+  HS61    HA           0.13338    18
+   CS7    CA          -0.24932    19
+  HS71    HA           0.13131    20
+   CS8    CT          -0.04399    21
+  HS81    HC           0.02245    22
+  HS82    HC           0.02245    23 
  [ bonds ]
    C1     H11
    C1     H12
@@ -133,30 +135,32 @@
    CS3    CS5    CS4    HS41
    CS6    CS4    CS5    HS51
 
+
 ;Terminal PS residue ("end" of chain)
-; designation arbitrary, C2 is -CH3
+; designation arbitrary, C2 is -CH3, modified charges sum to zero 
+
 [ PSc ]
  [ atoms ]
-   C2     CT          -0.132745     1
-   H21    HC           0.031540     2
-   H22    HC           0.031540     3
-   H23    HC           0.031540     4
-   CS1    CT           0.019819     5
-  HS11    HC           0.024043     6
-   CS2    CA           0.246077     7
-   CS3    CA          -0.247658     8
-  HS31    HA           0.132967     9
-   CS4    CA          -0.113667     10
-  HS41    HA           0.135033     11
-   CS5    CA          -0.179413     12
-  HS51    HA           0.140621     13
-   CS6    CA          -0.113667     14
-  HS61    HA           0.135033     15
-   CS7    CA          -0.247658     16
-  HS71    HA           0.132967     17
-   CS8    CT          -0.042334     18
-  HS81    HC           0.024105     19
-  HS82    HC           0.024105     20 
+   C2     CT          -0.13436     1
+   H21    HC           0.02993     2
+   H22    HC           0.02993     3
+   H23    HC           0.02993     4
+   CS1    CT           0.01821     5
+  HS11    HC           0.02243     6
+   CS2    CA           0.24446     7
+   CS3    CA          -0.24927     8
+  HS31    HA           0.13135     9
+   CS4    CA          -0.11528    10
+  HS41    HA           0.13342    11
+   CS5    CA          -0.18103    12
+  HS51    HA           0.13901    13
+   CS6    CA          -0.11528    14
+  HS61    HA           0.13342    15
+   CS7    CA          -0.24927    16
+  HS71    HA           0.13135    17
+   CS8    CT          -0.04395    18
+  HS81    HC           0.02249    19
+  HS82    HC           0.02249    20 
  [ bonds ]
   CS1     -CS8
   CS1     HS11
@@ -193,26 +197,26 @@
 ; because when running gmx_mpi pdb2gmx for longer length polymer chains,
 ; gromacs will form the correct number of bonds in the resulting topol.top file
 
-; Need to check the validity of charges with respect to simulated systems, charges calculated on 
-; a trimer of PLGA (3 LA and 3 GA units in total) using old version of Gaussian 09 
+; Charges calculated on a trimer of PLGA (3 LA and 3 GA units in total) using old version of Gaussian 09 
+; Modified charges sum to zero 
 
 [ PLG ]
  [ atoms ]
-    O5    OS          -0.57735     1
-    C6    C            0.85272     2
-    O6    O           -0.59998     3
-    C7    CT           0.37636     4
-    O7    OS          -0.62374     5
-    C8    C            0.92255     6
-    O8    O           -0.59484     7
-    C5    CT          -0.07088     8 ; C5 was orginally C9
-   C15    CT          -0.29948     9
-    H9    H1           0.02338    10
-   H10    H1           0.12460    11
-   H11    H1           0.12460    12
-   H18    HC           0.09505    13
-   H19    HC           0.09505    14
-   H20    HC           0.09505    15
+    O5    OS          -0.57356     1
+    C6    C            0.85651     2
+    O6    O           -0.59619     3
+    C7    CT           0.38015     4
+    O7    OS          -0.61995     5
+    C8    C            0.92634     6
+    O8    O           -0.59105     7
+    C5    CT          -0.06709     8 ; C5 was orginally C9
+   C15    CT          -0.29569     9
+    H9    H1           0.02717    10
+   H10    H1           0.12839    11
+   H11    H1           0.12839    12
+   H18    HC           0.09884    13
+   H19    HC           0.09884    14
+   H20    HC           0.09884    15
  [ bonds ]
    +C5    O5
     O5    C6
@@ -231,26 +235,27 @@
    C15   H19
    C15   H20
 
-;Starting PLGA terminal monomer( 1 LA and 1 GA, OH capped)
+;Starting PLGA terminal monomer( 1 LA and 1 GA, OH capped), Modified charges sum to zero 
+
 [ sPLG ]
  [ atoms ]
-    O9    OS          -0.52009     1
-   C10    C            0.88435     2
-   O10    O           -0.59249     3
-   C11    CT           0.29802     4
-   O11    OS          -0.66747     5
-   C12    C            0.93799     6
-   O12    O           -0.56420     7
-   C13    CT           0.07770     8
-   O13    OH          -0.71548     9
-    H2    HO           0.47209    10
-   C14    CT          -0.26649    11
-   H12    H1           0.02819    12
-   H13    H1           0.05565    13
-   H14    H1           0.05565    14
-   H15    HC           0.08801    15
-   H16    HC           0.08801    16
-   H17    HC           0.08801    17
+    O9    OS          -0.50523    1
+   C10    C            0.89921    2
+   O10    O           -0.57763    3
+   C11    CT           0.31288    4
+   O11    OS          -0.65261    5
+   C12    C            0.95285    6
+   O12    O           -0.54934    7
+   C13    CT           0.09256    8
+   O13    OH          -0.70062    9
+    H2    HO           0.48695   10
+   C14    CT          -0.25163   11
+   H12    H1           0.04305   12
+   H13    H1           0.07051   13
+   H14    H1           0.07051   14
+   H15    HC           0.10287   15
+   H16    HC           0.10287   16
+   H17    HC           0.10287   17
  [ bonds ]
    +C5    O9
     O9   C10
@@ -270,25 +275,26 @@
    C14   H16
    C14   H17
 
-; Ending PLGA monomer (1 LA and 1 GA units, OH capped)
+
+; Ending PLGA monomer (1 LA and 1 GA units, OH capped), Modified charges sum to zero 
 [ tPLG ]
  [ atoms ]
-    O1    OH          -0.69595     1
-    H1    HO           0.49592     2
-    C1    C            0.64714     3
-    O2    O           -0.56329     4
-    C2    CT           0.59906     5
-    C3    CT          -0.43775     6
-    O3    OS          -0.67869     7
-    C4    C            0.89725     8
-    O4    O           -0.58716     9
-    C5    CT           0.05616    10
-    H3    H1          -0.01065    31
-    H4    HC           0.12488    32
-    H5    HC           0.12488    33
-    H6    HC           0.12488    34
-    H7    H1           0.10639    35
-    H8    H1           0.10639    36
+    O1    OH          -0.71529     1
+    H1    HO           0.47658     2
+    C1    C            0.62780     3
+    O2    O           -0.58263     4
+    C2    CT           0.57972     5
+    C3    CT          -0.45709     6
+    O3    OS          -0.69803     7
+    C4    C            0.87791     8
+    O4    O           -0.60650     9
+    C5    CT           0.03682    10
+    H3    H1          -0.02999    11
+    H4    HC           0.10554    12
+    H5    HC           0.10554    13
+    H6    HC           0.10554    14
+    H7    H1           0.08705    15
+    H8    H1           0.08705    16
  [ bonds ]
     O1    H1
     O1    C1
@@ -309,19 +315,18 @@
 
 
 ; PEG strarting monomer charges coming from PEG trimer OH capped Gaussian calculation 
-; Still need to check validity of charges with respect to simulated systems 
+; Starting terminus is OH capped, Modified charges sum to zero
 
-; Starting terminus is OH capped
 [ sPEG ]
  [ atoms ]
-    H1    HO           0.45022     1
-    O1    OH          -0.74979     2
-    C1    CT           0.29343     3
-    H2    H1          -0.01122     4
-    H3    H1          -0.01122     5
-    C2    CT           0.35048     6
-    H4    H1          -0.00453     7
-    H5    H1          -0.00453     8
+    H1    HO           0.41112    1
+    O1    OH          -0.78890    2
+    C1    CT           0.25433    3
+    H2    H1          -0.05033    4
+    H3    H1          -0.05033    5
+    C2    CT           0.31138    6
+    H4    H1          -0.04364    7
+    H5    H1          -0.04364    8
  [ bonds ]
     H1    O1
     O1    C1
@@ -336,16 +341,16 @@
 ; because when running gmx_mpi pdb2gmx for longer length polymer chains,
 ; gromacs will form the correct number of bonds in the resulting topol.top file
   
-;PEG monomer
+;PEG monomer, Modified charges sum to zero
 [ PEG ]
  [ atoms ]
-    O2    OS          -0.60937     1
-    C3    CT           0.33476     2
-    H6    H1          -0.01911     3
-    H7    H1          -0.01911     4
-    C2    CT           0.33476     5   ;C2 was originally C4
-    H8    H1          -0.01911     6
-    H9    H1          -0.01911     7
+    O2    OS          -0.60704    1
+    C3    CT           0.33709    2
+    H6    H1          -0.01678    3
+    H7    H1          -0.01678    4
+    C2    CT           0.33709    5   ;C2 was originally C4
+    H8    H1          -0.01678    6
+    H9    H1          -0.01678    7
  [ bonds ]
    -C2    O2
     O2    C3
@@ -356,19 +361,19 @@
     C2    H9    ;C2 was orginially C4
     C2   +O2    ;C2 was originally C4
 
+;Ending PEG terminus, OH capped, Modified charges sum to zero  
 
-;Ending PEG terminus, OH capped 
 [ tPEG ]
  [ atoms ]
-    O3    OS          -0.60937     1
-    C5    CT           0.35048     2
-   H10    H1          -0.00453     3
-   H11    H1          -0.00453     4
-    C6    CT           0.29343     5
-   H12    H1          -0.01122     6
-   H13    H1          -0.01122     7
-    O4    OH          -0.74979     8
-   H14    HO           0.45022     9
+    O3    OS          -0.57642    1
+    C5    CT           0.38343    2
+   H10    H1           0.02842    3
+   H11    H1           0.02842    4
+    C6    CT           0.32638    5
+   H12    H1           0.02173    6
+   H13    H1           0.02173    7
+    O4    OH          -0.71684    8
+   H14    HO           0.48317    9
  [ bonds ]
    -C2    O3
     O3    C5

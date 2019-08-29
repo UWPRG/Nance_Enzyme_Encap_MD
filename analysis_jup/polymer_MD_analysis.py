@@ -5,6 +5,7 @@ import math
 import numpy as np 
 import pandas
 import sklearn
+import scipy as scipy
 
 def pers_length(polymer_atoms, n_monomers):
     """ This function takes the polymer atoms and number of monomers and outputs the polymer-averaged cosine theta (dot product) values 
@@ -26,9 +27,6 @@ def pers_length(polymer_atoms, n_monomers):
     
     # Inititalize a evenly spaced values with length of N - 1
     len_vec = np.arange(n_monomers-1)
-    
-    # Add 1 to all values to begin sequence from 1, instead of 0 
-    len_vec += 1
 
     # Store them in the vec_poly matrix
     vec_poly[1,:] = len_vec
@@ -316,6 +314,8 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
         # Use sklearn to do fitting
         from sklearn.linear_model import LinearRegression
         
+        from scipy import stats
+        
         if fit_pnts == len(blen): 
             
             # Want to fit a line with no y-intercept 
@@ -339,7 +339,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
             sum_m = np.sum(nhui)
             
             # How to calculate 95% confidence interval for the slope 
-            flc_np = scipy.stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            flc_np = stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
             
             # Slope here is in angstroms
             print("Lp [Angstroms]:", -1/model_npoly.coef_[0])

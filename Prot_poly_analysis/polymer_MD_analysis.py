@@ -6,6 +6,10 @@ import numpy as np
 import pandas
 import sklearn
 import scipy as scipy
+import warnings 
+# Use sklearn to do fitting
+from sklearn.linear_model import LinearRegression
+from scipy import stats
 
 def pers_length(polymer_atoms, n_monomers):
     """ This function takes the polymer atoms and number of monomers and outputs the polymer-averaged cosine theta (dot product) values 
@@ -308,109 +312,145 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
         # Arc length x values
         blen = cor_tp[3]*len_bnd
         
-        # ln(cosine theta) y values
-        npoly_lc = np.log(cor_tp[0])
-        
-        # Use sklearn to do fitting
-        from sklearn.linear_model import LinearRegression
-        
-        from scipy import stats
-        
-        if fit_pnts == len(blen): 
-            
-            # Want to fit a line with no y-intercept 
-            model_npoly = LinearRegression(fit_intercept=False)
-            
-            # fit line to data 
-            model_npoly.fit(blen.reshape(-1,1), npoly_lc)
+        warnings.filterwarnings("error")
 
-            # Predict new ln(cos(theta)) values from arc length values
-            gg_np = model_npoly.predict(blen.reshape(-1,1))
+        try:
+            # ln(cosine theta) y values
+            np.log(cor_tp[0])
+        except RuntimeWarning:
+            print("Negative cosine theta values present, doing exponential fit...")
             
-            # Residuals between the true y data and model y data 
-            resid_np = npoly_lc - gg_np
+            def func_exp(x,b):
+                return np.exp(b*x)
             
-            # How to calculate mean squared error
-            mse_p = np.sum(resid_np**2)/len(resid_np)
+            from scipy.optimize import curve_fit
             
-            # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
-            blen -= np.mean(blen)
-            nhui = blen**2
-            sum_m = np.sum(nhui)
+            popt, pcov = curve_fit(func_exp, blen, cor_tp[0])
+    
+            e_lp = np.sqrt(np.diag(pcov))[0]
             
-            # How to calculate 95% confidence interval for the slope 
-            flc_np = stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            lp_npoly = -1/popt[0]
             
             # Slope here is in angstroms
-            print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            print("Lp [Angstroms], Exp. fit:", lp_npoly)
             
             # Pers length error: error propagation from uncertainty in slope
-            print("Error in Lp from fit [Angstroms], 95% CL:", flc_np/((model_npoly.coef_[0])**2))
+            print("Error in Lp from fit [Angstroms]:", e_lp)
             
-            # Pearson coefficient to evaluate goodness of fit 
-            print("R2 score:", sklearn.metrics.r2_score(npoly_lc, gg_np))
-        
             # Save Lp in matrix
-            mod_res[0,count] = -1/model_npoly.coef_[0]
+            mod_res[0,count] = -1/popt[0]
             
-            blk_nparr[1,count] = -1/model_npoly.coef_[0]
+            blk_nparr[1,count] = -1/popt[0]
             
             # Save error in Lp from fit: Error propagation from the fit to Lp
-            mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
-            
-            # Save model slope 
-            mod_res[2, count] = model_npoly.coef_[0]
-            
-            # Save Mean squared error of the fit 
-            mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc, gg_np)
-        
-        elif fit_pnts != len(blen):
-        
-            # Want to fit a line with no y-intercept
-            model_npoly = LinearRegression(fit_intercept=False)
-            
-            # fit line to data
-            model_npoly.fit(blen[:fit_pnts].reshape(-1,1), npoly_lc[:fit_pnts])
-
-            # Predict new ln(cos(theta)) values from arc length values
-            gg_np = model_npoly.predict(blen[:fit_pnts].reshape(-1,1))
-            
-            # Residuals between the true y data and model y data 
-            resid_np = npoly_lc[:fit_pnts] - gg_np[:fit_pnts]
-            
-            # How to calculate mean squared error
-            mse_p = np.sum(resid_np**2)/len(resid_np)
-            
-            # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
-            blen -= np.mean(blen[:fit_pnts])
-            nhui = blen**2
-            sum_m = np.sum(nhui)
-            
-            # How to calculate 95% confidence interval for the slope 
-            flc_np = scipy.stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
-            
-            # Slope here is in angstroms
-            print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
-            
-            # Pers length error: error propagation from uncertainty in slope
-            print("Error in Lp from fit [Angstroms], 95% CL :", flc_np/((model_npoly.coef_[0])**2))
-            
-            # Pearson coefficient to evaluate goodness of fit
-            print("R2 score:", sklearn.metrics.r2_score(npoly_lc[:fit_pnts], gg_np[:fit_pnts]))
-        
-            # Save Lp in matrix
-            mod_res[0,count] = -1/model_npoly.coef_[0]
-            
-            blk_nparr[1,count] = -1/model_npoly.coef_[0]
-            
-            # Save error in Lp from fit: Error propagation from the fit to Lp
-            mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            mod_res[1,count] = e_lp
             
             # Save model slope
-            mod_res[2, count] = model_npoly.coef_[0]
+            mod_res[2, count] = 0
             
             # Save Mean squared error of the fit 
-            mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])        
+            mod_res[3,count] = 0
+        
+        else: 
+            
+            # ln(cosine theta) y values
+            npoly_lc = np.log(cor_tp[0])
+        
+            if fit_pnts == len(blen): 
+            
+                # Want to fit a line with no y-intercept 
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data 
+                model_npoly.fit(blen.reshape(-1,1), npoly_lc)
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen.reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc - gg_np
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen)
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL:", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit 
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc, gg_np))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[1,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope 
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc, gg_np)
+        
+            elif fit_pnts != len(blen):
+        
+                # Want to fit a line with no y-intercept
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data
+                model_npoly.fit(blen[:fit_pnts].reshape(-1,1), npoly_lc[:fit_pnts])
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen[:fit_pnts].reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc[:fit_pnts] - gg_np[:fit_pnts]
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen[:fit_pnts])
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = scipy.stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL :", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc[:fit_pnts], gg_np[:fit_pnts]))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[1,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])        
         
         count += 1
         

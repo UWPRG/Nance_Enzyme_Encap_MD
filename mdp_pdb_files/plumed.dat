@@ -1,0 +1,48 @@
+# Define protein structure
+#MOLINFO MOLTYPE=protein STRUCTURE=BSA.pdb
+#MOLINFO STRUCTURE=ref.pdb
+WHOLEMOLECULES ENTITY0=1-9220 ENTITY1=9221-9523, ENTITY2=9524-9826, ENTITY3=9827-10129
+
+
+#MOLINFO STRUCTURE=BSA.pdb
+#WHOLEMOLECULES RESIDUES=all MOLTYPE=protein
+
+#define Plga structure 
+#MOLINFO STRUCTURE=n20_fr10.pdb
+#WHOLEMOLECULES ENTITY0=9221-9523, ENTITY1=9524-9826, ENTITY2=9827-10129
+
+# Use the index file to indicate backbone atoms   
+c1bk_bne: GROUP NDX_FILE=bsaplga_nk.ndx NDX_GROUP=plga_bkbone_1
+c2bk_bne: GROUP NDX_FILE=bsaplga_nk.ndx NDX_GROUP=plga_bkbone_2
+c3bk_bne: GROUP NDX_FILE=bsaplga_nk.ndx NDX_GROUP=plga_bkbone_3
+
+#Compute the radius of gyration 
+c1_rg: GYRATION TYPE=RADIUS ATOMS=c1bk_bne 
+c2_rg: GYRATION TYPE=RADIUS ATOMS=c2bk_bne
+c3_rg: GYRATION TYPE=RADIUS ATOMS=c3bk_bne
+
+# Restrain the radius of gyration to 1.2 nm
+rg_res: RESTRAINT ARG=c1_rg,c2_rg,c3_rg KAPPA=4000,4000,4000 AT=1.2,1.2,1.2
+
+# Calculate the center of mass for each oligomer
+bsa: COM ATOMS=1-9220
+c1: COM ATOMS=9221-9523
+c2: COM ATOMS=9524-9826
+c3: COM ATOMS=9827-10129
+
+# Monitor the center of mass distance between each of the three oligomers
+d1_c23: DISTANCE ATOMS=c2,c3 
+d2_c12: DISTANCE ATOMS=c1,c2
+d3_c13: DISTANCE ATOMS=c1,c3
+
+# Monitor the center of mass distance between each oligomer and the protein 
+b_c1: DISTANCE ATOMS=bsa,c1
+b_c2: DISTANCE ATOMS=bsa,c2
+b_c3: DISTANCE ATOMS=bsa,c3
+
+# monitor the two variables and the bias potential from the two restraints
+PRINT STRIDE=1 ARG=c1_rg,c2_rg,c3_rg,rg_res.bias FILE=COLVAR
+
+# saves distances to another file
+PRINT STRIDE=1 ARG=d1_c23,d2_c12,d3_c13,b_c1,b_c2,b_c3 FILE=DIST_COL
+

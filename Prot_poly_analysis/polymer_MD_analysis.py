@@ -346,7 +346,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
             mod_res[1,count] = e_lp
             
             # Save model slope
-            mod_res[2, count] = 0
+            mod_res[2, count] = popt[0]
             
             # Save Mean squared error of the fit 
             mod_res[3,count] = 0

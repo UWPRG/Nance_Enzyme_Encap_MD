@@ -1,0 +1,33 @@
+#
+# A mixture of water and urea
+#
+
+tolerance 2.0
+filetype pdb
+output bsaplga_c2.pdb
+
+structure BSA.pdb 
+  number 1
+  center
+  fixed 0. 0. 0. 0. 0. 0.  
+  inside box 0. 0. 0. 110. 110. 110. 
+end structure
+
+structure n20_fr10.pdb
+  number 1
+  center
+  fixed 0. 40. 0. 0. 30. 0.
+end structure
+
+structure n20_fr10.pdb
+  number 1
+  center
+  fixed 0. -35. -25. 0. 0. 0.
+end structure
+
+structure n20_fr10.pdb
+  number 1
+  center
+  fixed -40. 30. 0. 0. 30. 0.
+end structure
+

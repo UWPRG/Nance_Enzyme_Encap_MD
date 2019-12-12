@@ -461,3 +461,222 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
         ot_dab[sf_lbl[i]] = blk_nparr[i,:]
     
     return ot_dab, mod_res
+
+# Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
+# Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke
+def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start, end):
+    
+    """This function calculates the positional bead autocorrelation as a function of time."""
+    
+    assert n_time_origins != 1, "Minimun number of time origins is 2."
+    
+    # Correlation vs time matrix
+    pb_corr = np.zeros(shape=(int((end-start)/n_time_origins)))
+
+    # Time lag array 
+    t_lag = np.arange(0, int((end-start)/n_time_origins))
+
+    #Initialize matrix to store correlation values for each monomer, for each frame
+    tcof_TO = np.zeros(shape=n_time_origins, dtype=object)
+
+    # counter for frame selection 
+    count = 0
+
+    for i in range(n_time_origins):
+    
+        if i == 0:
+        
+            # Shift the start of the trajectory to the start variable
+            start_to = i
+            print(start_to)
+        
+            # Define end point based on no. of tie origins 
+            end_to = int((end-start)/n_time_origins)
+            print(end_to)
+        
+            # Initialize matrix to store correlation values for each frame within each block 
+            t_cofcorr = np.zeros(shape=end_to-start_to, dtype=object)
+    
+        elif i != 0:
+        
+            #print(i)
+        
+            # Shift the start of the trajectory to the start variable
+            start_to = count
+            print(start_to)
+        
+            # Define end point based on no. of tie origins 
+            end_to = count + int((end-start)/n_time_origins)
+            print(end_to)
+        
+            #Initialize matrix to store correlation values for each frame after the first block
+            t_cofcorr = np.zeros(shape=end_to-start_to, dtype=object)
+        
+        # Initilaize variable for monomers COM
+        com_OL = np.zeros(shape=(n_monomers), dtype=object)
+    
+        # New counter
+        c_n2 = 0
+
+        # Initialize var for olig com at the first time origin frame
+        com_chain = []
+
+        # For loop section, frame iteration 
+        for ts in universe.trajectory[start_to:end_to]:
+    
+            # First frame(First time origin)
+            if c_n2 == 0:
+        
+                # Initialize array for distance storage
+                dist_com = np.zeros(shape=(n_monomers), dtype=object)
+        
+                # Initialize variable for dot product values
+                n_bcorr = np.zeros(shape=(n_monomers))
+        
+                # Center of mass of the oligomer chain. save in list  
+                com_chain.append(polymer_atoms.center_of_mass())
+        
+                for j in range(n_monomers):
+            
+                    #print(j+1)
+            
+                    a_fmon = polymer_atoms.select_atoms("resid "+str(j+1)).center_of_mass()
+            
+                    # Save COM for each monomer in an array
+                    com_OL[j] = a_fmon
+            
+                    # save distances and normalize vector 
+                    dist_com[j] = (a_fmon - com_chain[0])/(np.linalg.norm((a_fmon - com_chain[0])))
+            
+                    # Take dot product
+                    n_bcorr[j] = np.dot(dist_com[j],dist_com[j])
+    
+                t_cofcorr[c_n2] = n_bcorr
+            
+            # Following frames 
+            elif c_n2 != 0:
+        
+                # Initialize array for distance storage
+                dist_Afcom = np.zeros(shape=(n_monomers), dtype=object)
+        
+                # Initialize variable for dot product values
+                n_Afcorr = np.zeros(shape=(n_monomers)) 
+        
+                # Center of mass of the oligomer chain 
+                com_olig = polymer_atoms.center_of_mass()
+        
+                for j in range(n_monomers):
+            
+                    #print(j+1)
+            
+                    # COM for each monomer 
+                    a_NFmon = polymer_atoms.select_atoms("resid "+str(j+1)).center_of_mass()
+            
+                    # Save COM for each monomer in an array
+                    Nmon_com = a_NFmon
+            
+                    # save distances and normalize vector 
+                    dist_Afcom[j] = (a_NFmon - com_olig)/(np.linalg.norm((a_NFmon - com_olig)))
+            
+                    # Take dot product
+                    n_Afcorr[j] = np.dot(dist_Afcom[j],dist_com[j])
+        
+                t_cofcorr[c_n2] = n_Afcorr
+        
+            #print(n6_plga_ace.trajectory.frame)
+        
+            c_n2 += 1
+            #print(c_n2)
+    
+            count += 1
+            #print(count)
+        
+        # Save correlation data vs time for each block 
+        tcof_TO[i] = t_cofcorr
+    
+    # Initiallize array to store time averaged correlation values for each monomer, for each time lag point
+    sv_MN = np.zeros(shape=(int((end-start)/n_time_origins)), dtype=object)
+
+    # Time averaging dot product for each monomer then summing to get the correlation values of the polymer vs time
+    # Iterate through each time lag, based on no. of time origins 
+    for j in range(int((end-start)/n_time_origins)):
+    
+        # Initialize array to store time averaged corrletation values for each monomer, from each block 
+        ct_mean = np.zeros(shape=n_monomers)
+    
+        #print("j ="+str(j))
+    
+        # Iterate through monomers
+        for k in range(n_monomers):
+        
+            sv_mon = []
+        
+            #print("k ="+str(k))
+            
+            # Iterate through time origins 
+            for i in range(tcof_TO.shape[0]):
+                #print("i ="+str(i))
+                
+                # Save each correlation values across time blocks, for each monomer 
+                sv_mon.append(tcof_TO[i][j][k])
+            
+            # Time averaging happens here 
+            ct_mean[k] = np.mean(sv_mon)
+    
+        # Correlation values for each time lag is calculated here 
+        pb_corr[j] = np.sum(ct_mean)/n_monomers
+    
+        # Save mean values, output #1 
+        sv_MN[j] = ct_mean
+    
+    # Output #2
+    corr_ot = np.array([pb_corr, t_lag])
+        
+    return corr_ot, sv_MN
+
+# Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
+# Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke 
+def rouse_relax(x, h_s, tr_1, n_monomers):
+    
+    ## Change here for fitting
+    #n_monomers = 6
+    
+    f = 6/(((n_monomers)**2) - 1)
+    
+    b_pl = 1 - (1.66*(h_s**0.78))
+    
+    sigma = -1.40*(h_s**0.78)
+    
+    cr_ls = []
+    a1_sv = []
+    cor_times = []
+    
+    for i in range(n_monomers):
+        
+        #print(i)
+        
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        
+        #print(atv_i)
+        
+        asg_i = atv_i*b_pl*(((i+1)/n_monomers)**sigma) 
+        
+        #print(asg_i)
+        
+        if i == 0:
+            
+            a1_sv.append(atv_i)
+            
+            cr_ls.append(asg_i)
+            
+            trouse_i = (asg_i/asg_i)*tr_1
+            
+            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+        elif i != 0:
+            
+            trouse_i = (cr_ls[0]/asg_i)*tr_1
+            
+            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+    return f*np.sum(cor_times)

@@ -10,6 +10,7 @@ import warnings
 # Use sklearn to do fitting
 from sklearn.linear_model import LinearRegression
 from scipy import stats
+from scipy.optimize import leastsq
 
 def pers_length(polymer_atoms, n_monomers):
     """ This function takes the polymer atoms and number of monomers and outputs the polymer-averaged cosine theta (dot product) values 
@@ -636,11 +637,42 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
 
 # Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
 # Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke 
-def rouse_relax(x, h_s, tr_1, n_monomers):
+def rouse_relax(x, tr_1, n_monomers):
+    
+    ## Change here for fitting 
+    f = 6/(((n_monomers)**2) - 1)
+
+    a1_sv = []
+    cor_times = []
+    
+    for i in range(n_monomers):
+        
+        #print(i)
+        
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        
+        if i == 0:
+            
+            a1_sv.append(atv_i)
+            
+            trouse_i = (atv_i/atv_i)*tr_1
+            
+            #trouse_i = (asg_i/asg_i)*tr_1
+            
+            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+        elif i != 0:
+            
+            trouse_i = (a1_sv[0]/atv_i)*tr_1
+            
+            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+    return f*np.sum(cor_times)
+
+
+def zimm_relax(x, tr_1, h_s, n_monomers):
     
     ## Change here for fitting
-    #n_monomers = 6
-    
     f = 6/(((n_monomers)**2) - 1)
     
     b_pl = 1 - (1.66*(h_s**0.78))
@@ -680,3 +712,62 @@ def rouse_relax(x, h_s, tr_1, n_monomers):
             cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
             
     return f*np.sum(cor_times)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def fit_rz_relax(xdata, ydata, n_monomers):
+    
+    assert xdata.shape[0] == ydata.shape[0], "xdata and ydata must be the same shape."
+    
+    def res_poly(variabls, xnp, ynp):
+        hs_np = variabls[0]
+        tr1_np = variabls[1]
+        n_m = n_monomers
+        testnp = []
+        for i in range(len(xnp)):
+            model_ynp = rouse_relax(xnp[i], hs_np, tr1_np, n_m)
+            testnp.append(ynp[i] - model_ynp)
+    
+        tt_n30 = np.array(testnp)
+
+        return tt_n30
+    
+    x1 = np.array([0,0])
+    pfit, pcov, infodict, errmsg, success = leastsq(res_poly, x1, args=(xdata, ydata), full_output=1)
+
+    fit_dets = (pfit, pcov, infodict, errmsg, success)
+    # Residual variance
+    a = np.sum((res_poly(pfit, xdata, ydata))**2)/(len(ydata)- 2)
+    
+    pc_new = pcov*a
+    
+    stdev_kval = np.sqrt(np.diag(pc_new))
+    
+    print("h[s]: "+str(pfit[0]))
+    
+    print("1st relaxation time: "+str(pfit[1]))
+    
+    return pfit, stdev_kval, fit_dets

@@ -418,7 +418,8 @@ def orientation_order_param(polymer_atoms, universe, n_monomers, start, end):
                 
                 oov_norm = oo_vec/(np.linalg.norm(oo_vec))
                 
-                cosine_vals[i] = (np.dot(e2e_norm, oov_norm))**2 - 0.5
+                # I get negative values, if I don't take absolute values 
+                cosine_vals[i] = np.absolute(((np.dot(e2e_norm, oov_norm))**2) - 0.5)
                 
             elif i != 0:
                                   
@@ -429,8 +430,9 @@ def orientation_order_param(polymer_atoms, universe, n_monomers, start, end):
                 oo_vec = poly_smon - poly_fmon
                 
                 oov_norm = oo_vec/(np.linalg.norm(oo_vec))
-                                  
-                cosine_vals[i] = (np.dot(e2e_norm, oov_norm))**2 - 0.5
+                
+                # I get negative values, if I don't take absolute values
+                cosine_vals[i] = np.absolute(((np.dot(e2e_norm, oov_norm))**2) - 0.5)
                 
                 #print(cosine_vals)
                 
@@ -642,7 +644,8 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
             # ln(cosine theta) y values
             np.log(cor_tp[0])
         except RuntimeWarning:
-            #print("Negative cosine theta values present") 
+            
+            print("Negative cosine theta values present") 
             
             # ln(cosine theta) y values
             npoly_lc = np.log(cor_tp[0])
@@ -741,7 +744,108 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
                 mod_res[2, count] = model_npoly.coef_[0]
             
                 # Save Mean squared error of the fit 
-                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])        
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])
+                
+        else:
+            
+            # ln(cosine theta) y values
+            npoly_lc = np.log(cor_tp[0])
+        
+            if fit_pnts == len(blen): 
+            
+                # Want to fit a line with no y-intercept 
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data 
+                model_npoly.fit(blen.reshape(-1,1), npoly_lc)
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen.reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc - gg_np
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen)
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL:", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit 
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc, gg_np))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope 
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc, gg_np)
+        
+            elif fit_pnts != len(blen):
+        
+                # Want to fit a line with no y-intercept
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data
+                model_npoly.fit(blen[:fit_pnts].reshape(-1,1), npoly_lc[:fit_pnts])
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen[:fit_pnts].reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc[:fit_pnts] - gg_np[:fit_pnts]
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen[:fit_pnts])
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = scipy.stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL :", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc[:fit_pnts], gg_np[:fit_pnts]))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])
         
         count += 1
         
@@ -976,19 +1080,19 @@ def pos_bead_autocorr_RA(polymer_atoms, universe, n_monomers, t_corr, window_shi
 
 # Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
 # Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke 
-def rouse_relax(x, tr_1, n_monomers):
+def rouse_relax(x, tr_1, n_bonds):
     
     ## Change here for fitting 
-    f = 6/(((n_monomers)**2) - 1)
+    f = 6/(((n_bonds)**2) - 1)
 
     a1_sv = []
     cor_times = []
     
-    for i in range(n_monomers):
+    for i in range(n_bonds):
         
         #print(i)
         
-        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
         
         if i == 0:
             
@@ -1009,10 +1113,10 @@ def rouse_relax(x, tr_1, n_monomers):
     return f*np.sum(cor_times)
 
 
-def zimm_relax(x, tr_1, h_s, n_monomers):
+def zimm_relax_fit(x, tr_1, h_s, n_bonds):
     
     ## Change here for fitting
-    f = 6/(((n_monomers)**2) - 1)
+    f = 6/(((n_bonds)**2) - 1)
     
     b_pl = 1 - (1.66*(h_s**0.78))
     
@@ -1022,15 +1126,15 @@ def zimm_relax(x, tr_1, h_s, n_monomers):
     a1_sv = []
     cor_times = []
     
-    for i in range(n_monomers):
+    for i in range(n_bonds):
         
         #print(i)
         
-        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
         
         #print(atv_i)
         
-        asg_i = atv_i*b_pl*(((i+1)/n_monomers)**sigma) 
+        asg_i = atv_i*b_pl*(((i+1)/n_bonds)**sigma) 
         
         #print(asg_i)
         
@@ -1042,47 +1146,70 @@ def zimm_relax(x, tr_1, h_s, n_monomers):
             
             trouse_i = (asg_i/asg_i)*tr_1
             
-            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
             
         elif i != 0:
             
             trouse_i = (cr_ls[0]/asg_i)*tr_1
             
-            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
             
     return f*np.sum(cor_times)
 
-
-def fit_rz_relax(xdata, ydata, n_monomers):
+def zimm_relax_func(x, tr_1, h_s, n_bonds):
     
-    assert xdata.shape[0] == ydata.shape[0], "xdata and ydata must be the same shape."
+    ## Change here for fitting
+    f = 6/(((n_bonds)**2) - 1)
     
-    def res_poly(variabls, xnp, ynp):
-        hs_np = variabls[0]
-        tr1_np = variabls[1]
-        n_m = n_monomers
-        testnp = []
-        for i in range(len(xnp)):
-            model_ynp = rouse_relax(xnp[i], hs_np, tr1_np, n_m)
-            testnp.append(ynp[i] - model_ynp)
+    b_pl = 1 - (1.66*(h_s**0.78))
     
-        tt_n30 = np.array(testnp)
-
-        return tt_n30
+    sigma = -1.40*(h_s**0.78)
     
-    x1 = np.array([0,0])
-    pfit, pcov, infodict, errmsg, success = leastsq(res_poly, x1, args=(xdata, ydata), full_output=1)
-
-    fit_dets = (pfit, pcov, infodict, errmsg, success)
-    # Residual variance
-    a = np.sum((res_poly(pfit, xdata, ydata))**2)/(len(ydata)- 2)
+    cr_ls = []
+    a1_sv = []
+    t_zimm = []
+    cor_times = []
     
-    pc_new = pcov*a
-    
-    stdev_kval = np.sqrt(np.diag(pc_new))
-    
-    print("h[s]: "+str(pfit[0]))
-    
-    print("1st relaxation time: "+str(pfit[1]))
-    
-    return pfit, stdev_kval, fit_dets
+    for i in range(n_bonds):
+        
+        #print(i)
+        
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
+        
+        #print(atv_i)
+        
+        asg_i = atv_i*b_pl*(((i+1)/n_bonds)**sigma)
+        
+        #print(asg_i)
+        
+        if i == 0:
+            
+            a1_sv.append(atv_i)
+            
+            cr_ls.append(asg_i)
+            
+            trouse_i = (asg_i/asg_i)*tr_1
+            
+            t_zimm.append(trouse_i)
+            
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
+            
+        elif i != 0:
+            
+            trouse_i = (cr_ls[0]/asg_i)*tr_1
+            
+            t_zimm.append(trouse_i)
+            
+            cr_ls.append(asg_i)
+            
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
+            
+    return f*np.sum(cor_times), t_zimm, cr_ls

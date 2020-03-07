@@ -137,6 +137,314 @@ def pers_length(polymer_atoms, n_monomers):
     return vec_poly
 
 
+
+
+def mean_sq_e2e(polymer_atoms, universe, n_monomers, start, end):
+    
+    # Initialize a row vector to store the end to end distance vector at each frame 
+    e2e_ens = np.zeros(shape=(end-start), dtype=object)
+
+    # Magnitudes (or distances) end to end distance vector to be stored here
+    # row 1: squared end to end distance at each frame 
+    # row 2: End to end distance at each frame 
+    dis_e2e = np.zeros(shape=(2, end-start))
+    
+    count_e2e = 0 
+    
+    c_res = 0
+    
+    for ts in universe.trajectory[start:end]:
+        
+        # Get the position vector for COM of the first residue in the polymer atom group
+        pres_start = polymer_atoms.select_atoms("resid "+str(c_res+1)).center_of_mass()
+        
+        # Get the position vector for COM of the last residue in the polymer atom group
+        pres_end = polymer_atoms.select_atoms("resid "+str(n_monomers)).center_of_mass()
+        
+        # Calc end to end distance vector
+        e2e = pres_end - pres_start
+        
+        # Square each distance vector so (x^2 + y^2 + z^2) to get squared e2e distance at current frame
+        dis_e2e[0,count_e2e] = np.linalg.norm(e2e)**2
+        
+        # Take square root of squared e2e distance to get e2e distance at current frame
+        dis_e2e[1,count_e2e] = np.linalg.norm(e2e)
+        
+        # Store e2e vector at current frame
+        e2e_ens[count_e2e] = e2e
+        
+        count_e2e += 1
+
+    # Outputs: 
+    # e2e_ens: squared end to end distance vector at each frame 
+    # dis_e2e: end to end distance (in Angstroms) and mean squared e2e at each frame 
+    return e2e_ens, dis_e2e
+
+
+
+def hydro_rad_poly(polymer_atoms, universe, n_monomers, start, end):
+    
+    # Initialize a zeros matrix of 2 rows, N - 1 columns to store key values
+    # Row 1: Rh at each frame 
+    rh_frame = np.zeros(shape=(end-start))
+    
+    #store sums
+    sum_rhstore = np.zeros(shape=(n_monomers-1))
+    
+    cnn = 0
+    
+    for ts in universe.trajectory[start:end]:
+        
+        count = 0
+    
+        # For loop that is the length of the monomers 
+        for i in range(n_monomers-1):
+        
+            # Add 1 to counter
+            count += 1
+            
+            #print(count)
+        
+            # This array dim(N - count) will contain the dot product values for each round
+            r_vec = np.zeros(shape=(n_monomers-count))
+        
+            # For loop that is N - count monomers
+            for j in range(n_monomers - count):
+        
+                # Inititalize a evenly spaced values with length of N - count
+                jh = np.arange(n_monomers - count)
+            
+                # Add 1 to all values for the purpose of selecting the next residue for the dot product calculation
+                jh += count+1
+
+                # Use MD Analysis to select the first reference residue
+                n6_mon1 = polymer_atoms.select_atoms("resid "+str(count))
+
+                #print(count)
+                
+                # Use MD Analysis to select the second reference residue
+                n6_mon2 = polymer_atoms.select_atoms("resid "+str(jh[j]))
+                
+                #print(jh)
+
+                # Calc. distance between center of masses
+                v1 = n6_mon1.center_of_mass() - n6_mon2.center_of_mass()
+                
+                # store the inverse of these distances, same as mda.distance.distance_array
+                r_vec[j] = 1/(np.linalg.norm(v1))
+                
+                #print(r_vec)
+            
+            sum_rhstore[count-1] = np.sum(r_vec)
+        
+        #print(sum_rhstore)    
+            
+        #rh_frame[0,cnn] = (1/((n_monomers)**2))*(np.sum(sum_rhstore))
+        
+        rh_frame[cnn] = 1/((1/((n_monomers)**2))*(np.sum(sum_rhstore)))
+
+        cnn += 1
+        
+    return rh_frame
+
+
+
+
+def rh_block_avg(no_of_blks, polymer_atoms, universe, begin, final):
+    
+     # Block size 
+    n_size = int((final - begin)/no_of_blks)
+    
+    # Initialize dictionary 
+    ot_dab = {}
+    
+    # Shift the start of the trajectory to the begin variable 
+    universe.trajectory[begin]
+    
+    # Using MD Analysis, I can get the number of polymer monomers in the polymer_atoms input variable. 
+    n_monomers = len(np.unique(polymer_atoms.resids))
+    
+    inv_sto = np.zeros(shape=(no_of_blks), dtype=object)
+
+    for nb in range(no_of_blks):
+        
+        # Shift the start of the trajectory to the start variable
+        start = universe.trajectory.frame
+        print(start)
+    
+        # Define end of block 
+        end = int(start + n_size)
+        print(end)
+        
+        # Initialize array to store Rh for each block
+        inv_frame = np.zeros(shape=(end-start), dtype=object)
+    
+        cnn = 0
+    
+        for ts in universe.trajectory[start:end]:
+        
+            sum_rhstore = np.zeros(shape=(n_monomers-1), dtype=object)
+            #print(sum_rhstore.shape)
+            
+            co_t = 0
+    
+            # For loop that is the length of the monomers 
+            for i in range(n_monomers-1):
+        
+                # Add 1 to counter
+                co_t += 1
+        
+                # This array dim(N - count) will contain the dot product values for each round
+                r_vec = np.zeros(shape=(n_monomers-co_t))
+        
+                # For loop that is N - count monomers
+                for j in range(n_monomers - co_t):
+        
+                    # Inititalize a evenly spaced values with length of N - count
+                    jh = np.arange(n_monomers - co_t)
+            
+                    # Add 1 to all values for the purpose of selecting the next residue for the dot product calculation
+                    jh += co_t+1
+
+                    # Use MD Analysis to select the first reference residue
+                    n6_mon1 = polymer_atoms.select_atoms("resid "+str(co_t))
+
+                    #print(polymer_atoms.select_atoms("resid "+str(co_t)).resids)
+                
+                    # Use MD Analysis to select the second reference residue
+                    n6_mon2 = polymer_atoms.select_atoms("resid "+str(jh[j]))
+                    
+                    #print(polymer_atoms.select_atoms("resid "+str(jh[j])).resids)
+
+                    # Calc. distance between center of masses 
+                    v1 = n6_mon1.center_of_mass() - n6_mon2.center_of_mass()
+                
+                    # store the inverse of these distances
+                    # This gives the same values as mda.distance.distance_array
+                    r_vec[j] = 1/(np.linalg.norm(v1))
+                
+                    #print("r_vec ="+str(r_vec))
+            
+                sum_rhstore[co_t-1] = r_vec
+                
+                #print("sum_rhstore ="+str(sum_rhstore))
+                
+            inv_frame[cnn] = sum_rhstore
+            
+            cnn += 1
+            
+        # Enseble averaging of inverse distances prior to summation
+        conn = 0
+        s_rh = np.zeros(shape=(n_monomers-1), dtype=object)
+
+        for ns in range(n_monomers-1):
+            conn += 1
+            ln = np.zeros(shape=(n_size,n_monomers-conn))
+
+            rvc = np.zeros(shape=(n_monomers-conn))
+            
+            #print("ns = "+str(ns))
+    
+            for kl in range(n_size):
+                #print("kl = "+str(kl))
+                ln[kl] = inv_frame[kl][ns]
+        
+            #print(ln)
+            for k in range(n_monomers-conn):
+                #print(ln[:,k])
+                #print(np.mean(ln[:,k]))
+                rvc[k] = np.mean(ln[:,k])
+        
+            #print(rvc)
+  
+            s_rh[ns] = np.sum(rvc)
+    
+        #print(s_rh)
+
+        # Calc time averaged Rh
+        inv_sto[nb] = 1/((1/(n_monomers**2))*np.sum(s_rh))
+        
+        # Shift the start to the next trajectory block 
+        universe.trajectory[end]
+
+    return inv_sto
+
+
+
+def orientation_order_param(polymer_atoms, universe, n_monomers, start, end):
+    
+    # Initialize a zeros matrix of 2 rows, N - 1 columns to store key values
+    # Row 1: Rh at each frame 
+    oo_frame = np.zeros(shape=(end-start))
+    
+    c_res = 0
+    
+    c_n2 = 0 
+
+    for ts in universe.trajectory[start:end]:
+    
+        # Get the position vector for COM of the first residue in the polymer atom group
+        pres_start = polymer_atoms.select_atoms("resid "+str(c_res+1)).center_of_mass()
+        
+        #print(polymer_atoms.select_atoms("resid "+str(c_res+1)).resids)
+        
+        # Get the position vector for COM of the last residue in the polymer atom group
+        pres_end = polymer_atoms.select_atoms("resid "+str(n_monomers)).center_of_mass()
+        
+        #print(polymer_atoms.select_atoms("resid "+str(n_monomers)).resids)
+        
+        # Calc end to end distance vector
+        e2e = pres_end - pres_start
+        
+        e2e_norm = e2e/(np.linalg.norm(e2e))
+        
+        # Inititalize a evenly spaced values with length of N - count
+        jh = np.arange(n_monomers-1)
+        
+        jh += 2
+        
+        #print(jh)
+        
+        cosine_vals = np.zeros(shape=(n_monomers-1))
+    
+        # For loop that is the length of the monomers 
+        for i in range(len(jh)):
+            
+            poly_mon = polymer_atoms.select_atoms("resid "+str(jh[i])).center_of_mass()
+            
+            if i == 0:
+                
+                oo_vec = poly_mon - pres_start
+                
+                oov_norm = oo_vec/(np.linalg.norm(oo_vec))
+                
+                # I get negative values, if I don't take absolute values 
+                cosine_vals[i] = np.absolute(((np.dot(e2e_norm, oov_norm))**2) - 0.5)
+                
+            elif i != 0:
+                                  
+                poly_fmon = polymer_atoms.select_atoms("resid "+str(jh[i]-1)).center_of_mass()
+                                  
+                poly_smon = polymer_atoms.select_atoms("resid "+str(jh[i])).center_of_mass()
+                                 
+                oo_vec = poly_smon - poly_fmon
+                
+                oov_norm = oo_vec/(np.linalg.norm(oo_vec))
+                
+                # I get negative values, if I don't take absolute values
+                cosine_vals[i] = np.absolute(((np.dot(e2e_norm, oov_norm))**2) - 0.5)
+                
+                #print(cosine_vals)
+                
+        oo_frame[c_n2] = (3/(2*(n_monomers-1)))*np.sum(cosine_vals)
+        
+        #print(oo_frame)
+        
+        c_n2 += 1
+    
+    return oo_frame
+
+
 def get_rg_pers_poly(polymer_atoms, universe, start, end):
     """This function takes as inputs: 
     
@@ -178,8 +486,8 @@ def get_rg_pers_poly(polymer_atoms, universe, start, end):
     # Using MD Analysis, I can get the number of polymer monomers in the polymer_atoms input variable. 
     n_monomers = len(np.unique(polymer_atoms.resids))
     
-    # Initialize a row vector to store the radius of gyration at each frame 
-    rg_ens = np.zeros(shape=(1,end-start))
+    # Initialize a row vector to store the radius of gyration and squared radius of gyration at each frame 
+    rg_sq_ens = np.zeros(shape=(2, end-start))
     
     # Initialize matrix to store polymer averaged cosine theta values at each frame
     corr_v = np.zeros(shape=(n_monomers-1,end-start))
@@ -210,7 +518,10 @@ def get_rg_pers_poly(polymer_atoms, universe, start, end):
         angle_v[:,count_rg] = p_mat[2]
         
         # the radius of gyration at this frame 
-        rg_ens[0,count_rg] = polymer_atoms.radius_of_gyration()
+        rg_sq_ens[0, count_rg] = polymer_atoms.radius_of_gyration()
+        
+        # the squared radius of gyration at this frame
+        rg_sq_ens[1, count_rg] = (polymer_atoms.radius_of_gyration())**2
         
         # update counter 
         count_rg += 1 
@@ -231,9 +542,9 @@ def get_rg_pers_poly(polymer_atoms, universe, start, end):
         v_poly[2,i] = np.mean(angle_v[i,:])
     
     # Time averaged radius of gyration 
-    avg_rg = np.mean(rg_ens)
+    avg_rg = np.sqrt(np.mean(rg_sq_ens[1]))
     
-    return  rg_ens, v_poly, corr_v, avg_rg 
+    return  rg_sq_ens, v_poly, corr_v, avg_rg 
 
 def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin, final):
     """This function takes as inputs:
@@ -282,7 +593,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
     universe.trajectory[begin]
     
     # Keys for the dictionary above 
-    sf_lbl = ["Avg Radius of gyration", "Avg persistence length"]
+    sf_lbl = ["Avg Radius of gyration","Avg Sq. radius of gyration", "Avg end to end distance","Avg Sq. end to end distance", "Avg persistence length", "Avg Hydrodynamic radius"]
 
     # Array that will contain the Rg and Lp for each trajectory block 
     blk_nparr = np.zeros(shape=(len(sf_lbl),no_of_blks))
@@ -292,8 +603,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
     
     # initialize counter
     count = 0 
-    
-    
+
     for i in range(no_of_blks):
         
         # Shift the start of the trajectory to the start variable
@@ -307,8 +617,23 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
         # Get the time averaged cosine theta values for this block 
         rg_ens, cor_tp, theta_ens, rg_avg = get_rg_pers_poly(polymer_atoms, universe, start, end)
         
+        # Using MD Analysis, I can get the number of polymer monomers in the polymer_atoms input variable. 
+        n_monomers = len(np.unique(polymer_atoms.resids))
+        
+        # End to end distance and squared e2e distance
+        eVec_poly, e2edis_poly = mean_sq_e2e(polymer_atoms, universe, n_monomers, start, end)
+        
         # Store average radius of gyration for the block 
         blk_nparr[0,count] = rg_avg
+        
+        # Store averaged squared radius of gyration for the block 
+        blk_nparr[1,count] = np.mean(rg_ens[1])
+        
+        # Store average end to end distance for the block 
+        blk_nparr[2, count] = np.sqrt(np.mean(e2edis_poly[0]))
+        
+        # Store mean squared end to end distance for the block 
+        blk_nparr[3, count] = np.mean(e2edis_poly[0])
         
         # Arc length x values
         blen = cor_tp[3]*len_bnd
@@ -319,40 +644,8 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
             # ln(cosine theta) y values
             np.log(cor_tp[0])
         except RuntimeWarning:
-            print("Negative cosine theta values present, doing exponential fit...")
             
-            def func_exp(x,b):
-                return np.exp(b*x)
-            
-            from scipy.optimize import curve_fit
-            
-            popt, pcov = curve_fit(func_exp, blen, cor_tp[0])
-    
-            e_lp = np.sqrt(np.diag(pcov))[0]
-            
-            lp_npoly = -1/popt[0]
-            
-            # Slope here is in angstroms
-            print("Lp [Angstroms], Exp. fit:", lp_npoly)
-            
-            # Pers length error: error propagation from uncertainty in slope
-            print("Error in Lp from fit [Angstroms]:", e_lp)
-            
-            # Save Lp in matrix
-            mod_res[0,count] = -1/popt[0]
-            
-            blk_nparr[1,count] = -1/popt[0]
-            
-            # Save error in Lp from fit: Error propagation from the fit to Lp
-            mod_res[1,count] = e_lp
-            
-            # Save model slope
-            mod_res[2, count] = popt[0]
-            
-            # Save Mean squared error of the fit 
-            mod_res[3,count] = 0
-        
-        else: 
+            print("Negative cosine theta values present") 
             
             # ln(cosine theta) y values
             npoly_lc = np.log(cor_tp[0])
@@ -394,7 +687,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
                 # Save Lp in matrix
                 mod_res[0,count] = -1/model_npoly.coef_[0]
             
-                blk_nparr[1,count] = -1/model_npoly.coef_[0]
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
             
                 # Save error in Lp from fit: Error propagation from the fit to Lp
                 mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
@@ -442,7 +735,7 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
                 # Save Lp in matrix
                 mod_res[0,count] = -1/model_npoly.coef_[0]
             
-                blk_nparr[1,count] = -1/model_npoly.coef_[0]
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
             
                 # Save error in Lp from fit: Error propagation from the fit to Lp
                 mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
@@ -451,67 +744,203 @@ def bavg_pers_cnt(no_of_blks, polymer_atoms, universe, len_bnd, fit_pnts, begin,
                 mod_res[2, count] = model_npoly.coef_[0]
             
                 # Save Mean squared error of the fit 
-                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])        
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])
+                
+        else:
+            
+            # ln(cosine theta) y values
+            npoly_lc = np.log(cor_tp[0])
+        
+            if fit_pnts == len(blen): 
+            
+                # Want to fit a line with no y-intercept 
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data 
+                model_npoly.fit(blen.reshape(-1,1), npoly_lc)
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen.reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc - gg_np
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen)
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL:", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit 
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc, gg_np))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope 
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc, gg_np)
+        
+            elif fit_pnts != len(blen):
+        
+                # Want to fit a line with no y-intercept
+                model_npoly = LinearRegression(fit_intercept=False)
+            
+                # fit line to data
+                model_npoly.fit(blen[:fit_pnts].reshape(-1,1), npoly_lc[:fit_pnts])
+
+                # Predict new ln(cos(theta)) values from arc length values
+                gg_np = model_npoly.predict(blen[:fit_pnts].reshape(-1,1))
+            
+                # Residuals between the true y data and model y data 
+                resid_np = npoly_lc[:fit_pnts] - gg_np[:fit_pnts]
+            
+                # How to calculate mean squared error
+                mse_p = np.sum(resid_np**2)/len(resid_np)
+            
+                # How to calculate Sum((Xi - avg(X))^2): X values are the arc length values 
+                blen -= np.mean(blen[:fit_pnts])
+                nhui = blen**2
+                sum_m = np.sum(nhui)
+            
+                # How to calculate 95% confidence interval for the slope 
+                flc_np = scipy.stats.t.ppf(0.975, fit_pnts-1)*np.sqrt(mse_p/sum_m)
+            
+                # Slope here is in angstroms
+                print("Lp [Angstroms]:", -1/model_npoly.coef_[0])
+            
+                # Pers length error: error propagation from uncertainty in slope
+                print("Error in Lp from fit [Angstroms], 95% CL :", flc_np/((model_npoly.coef_[0])**2))
+            
+                # Pearson coefficient to evaluate goodness of fit
+                print("R2 score:", sklearn.metrics.r2_score(npoly_lc[:fit_pnts], gg_np[:fit_pnts]))
+        
+                # Save Lp in matrix
+                mod_res[0,count] = -1/model_npoly.coef_[0]
+            
+                blk_nparr[4,count] = -1/model_npoly.coef_[0]
+            
+                # Save error in Lp from fit: Error propagation from the fit to Lp
+                mod_res[1,count] = flc_np/((model_npoly.coef_[0])**2)
+            
+                # Save model slope
+                mod_res[2, count] = model_npoly.coef_[0]
+            
+                # Save Mean squared error of the fit 
+                mod_res[3,count] = sklearn.metrics.mean_squared_error(npoly_lc[:fit_pnts], gg_np[:fit_pnts])
         
         count += 1
         
         # Shift the start to the next trajectory block 
         universe.trajectory[end]
+        
+    # Hydrodynamic Radius for this block
+    rh_poly = rh_block_avg(no_of_blks, polymer_atoms, universe, begin, final)
+    
+    ot_dab[sf_lbl[5]] = rh_poly
    
-    for i in range(len(sf_lbl)):
+    for i in range(len(sf_lbl)-1):
         ot_dab[sf_lbl[i]] = blk_nparr[i,:]
     
     return ot_dab, mod_res
 
 # Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
 # Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke
-def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start, end):
+def pos_bead_autocorr_RA(polymer_atoms, universe, n_monomers, t_corr, window_shift, start, end):
     
-    """This function calculates the positional bead autocorrelation as a function of time."""
-    
-    assert n_time_origins != 1, "Minimun number of time origins is 2."
+    """This function calculates the positional bead autocorrelation as a function of time, with running averaging method.
+    t_corr is the number of frames in a window. """
     
     # Correlation vs time matrix
-    pb_corr = np.zeros(shape=(int((end-start)/n_time_origins)))
-
-    # Time lag array 
-    t_lag = np.arange(0, int((end-start)/n_time_origins))
-
-    #Initialize matrix to store correlation values for each monomer, for each frame
-    tcof_TO = np.zeros(shape=n_time_origins, dtype=object)
+    pb_corr = np.zeros(shape=(int(t_corr)))
+                       
+    # Time lag array
+    t_lag = np.arange(0, int(t_corr))
+                       
+    #Initialize matrix to store correlation values for each window
+    # Default window displacement is one frame down
+    #tcof_TO = np.zeros(shape=end-(t_corr-1), dtype=object)
+                       
+    #tcot_sum = np.zeros(shape=end-(t_corr-1), dtype=object)
 
     # counter for frame selection 
-    count = 0
+    #count = 0
+    
+    # Get No. of samples for a given window displacement
+    n_wind = 0
+    c_n = 0 
+    e_n = start + t_corr
 
-    for i in range(n_time_origins):
+    for i in range(end):
+
+        c_n += 1
+
+        if c_n == e_n:
+        
+            n_wind += 1
+        
+            e_n = e_n + window_shift 
+
+    print("No. of Samples: "+str(n_wind))
+
+    #Initialize matrix to store correlation values for each window
+    # Default window displacement is one frame down
+    tcof_TO = np.zeros(shape=n_wind, dtype=object)
+                       
+    tcot_sum = np.zeros(shape=n_wind, dtype=object)
+
+    for i in range(n_wind):
     
         if i == 0:
         
             # Shift the start of the trajectory to the start variable
             start_to = i
-            print(start_to)
+            #print(start_to)
         
+
             # Define end point based on no. of tie origins 
-            end_to = int((end-start)/n_time_origins)
-            print(end_to)
+            end_to = int(t_corr)
+            print(str(start_to)+ " to "+str(end_to))
         
             # Initialize matrix to store correlation values for each frame within each block 
             t_cofcorr = np.zeros(shape=end_to-start_to, dtype=object)
+                       
+            t_cofSUM = np.zeros(shape=end_to-start_to, dtype=object)
     
         elif i != 0:
         
             #print(i)
         
             # Shift the start of the trajectory to the start variable
-            start_to = count
-            print(start_to)
+            start_to = start_to + window_shift
+            #print(start_to)
         
             # Define end point based on no. of tie origins 
-            end_to = count + int((end-start)/n_time_origins)
-            print(end_to)
+            end_to = end_to + window_shift
+            print(str(start_to)+ " to "+str(end_to))
         
             #Initialize matrix to store correlation values for each frame after the first block
             t_cofcorr = np.zeros(shape=end_to-start_to, dtype=object)
+                       
+            t_cofSUM = np.zeros(shape=end_to-start_to, dtype=object)
         
         # Initilaize variable for monomers COM
         com_OL = np.zeros(shape=(n_monomers), dtype=object)
@@ -553,6 +982,8 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
                     n_bcorr[j] = np.dot(dist_com[j],dist_com[j])
     
                 t_cofcorr[c_n2] = n_bcorr
+                       
+                t_cofSUM[c_n2] = np.sum(n_bcorr)/n_monomers
             
             # Following frames 
             elif c_n2 != 0:
@@ -573,9 +1004,6 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
                     # COM for each monomer 
                     a_NFmon = polymer_atoms.select_atoms("resid "+str(j+1)).center_of_mass()
             
-                    # Save COM for each monomer in an array
-                    Nmon_com = a_NFmon
-            
                     # save distances and normalize vector 
                     dist_Afcom[j] = (a_NFmon - com_olig)/(np.linalg.norm((a_NFmon - com_olig)))
             
@@ -583,24 +1011,33 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
                     n_Afcorr[j] = np.dot(dist_Afcom[j],dist_com[j])
         
                 t_cofcorr[c_n2] = n_Afcorr
+                
+                t_cofSUM[c_n2] = np.sum(n_Afcorr)/n_monomers
         
             #print(n6_plga_ace.trajectory.frame)
         
             c_n2 += 1
             #print(c_n2)
     
-            count += 1
+            #count += 1
             #print(count)
         
         # Save correlation data vs time for each block 
         tcof_TO[i] = t_cofcorr
+        
+        tcot_sum[i] = t_cofSUM
+        
+    
+    #print(tcof_TO)
+    
+    #print(tcot_sum)
     
     # Initiallize array to store time averaged correlation values for each monomer, for each time lag point
-    sv_MN = np.zeros(shape=(int((end-start)/n_time_origins)), dtype=object)
+    sv_MN = np.zeros(shape=(t_corr), dtype=object)
 
     # Time averaging dot product for each monomer then summing to get the correlation values of the polymer vs time
     # Iterate through each time lag, based on no. of time origins 
-    for j in range(int((end-start)/n_time_origins)):
+    for j in range(t_corr):
     
         # Initialize array to store time averaged corrletation values for each monomer, from each block 
         ct_mean = np.zeros(shape=n_monomers)
@@ -618,8 +1055,12 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
             for i in range(tcof_TO.shape[0]):
                 #print("i ="+str(i))
                 
+                #print(i)
+                
                 # Save each correlation values across time blocks, for each monomer 
                 sv_mon.append(tcof_TO[i][j][k])
+            
+            #print(sv_mon)
             
             # Time averaging happens here 
             ct_mean[k] = np.mean(sv_mon)
@@ -628,28 +1069,30 @@ def pos_bead_autocorr(polymer_atoms, universe, n_monomers, n_time_origins, start
         pb_corr[j] = np.sum(ct_mean)/n_monomers
     
         # Save mean values, output #1 
+        # row 1: Correlation values at t = 0, each column is the time-averaged correlation for each monomer              
+        
         sv_MN[j] = ct_mean
     
     # Output #2
     corr_ot = np.array([pb_corr, t_lag])
-        
-    return corr_ot, sv_MN
+    
+    return corr_ot, tcot_sum
 
 # Name of paper: Computer simulation of dilute polymer solutions with the dissipative particle dynamics method 
 # Authors: A. G. Schlijper, P. J. Hoogerbrugge, and C. W. Manke 
-def rouse_relax(x, tr_1, n_monomers):
+def rouse_relax(x, tr_1, n_bonds):
     
     ## Change here for fitting 
-    f = 6/(((n_monomers)**2) - 1)
+    f = 6/(((n_bonds)**2) - 1)
 
     a1_sv = []
     cor_times = []
     
-    for i in range(n_monomers):
+    for i in range(n_bonds):
         
         #print(i)
         
-        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
         
         if i == 0:
             
@@ -670,10 +1113,10 @@ def rouse_relax(x, tr_1, n_monomers):
     return f*np.sum(cor_times)
 
 
-def zimm_relax(x, tr_1, h_s, n_monomers):
+def zimm_relax_fit(x, tr_1, h_s, n_bonds):
     
     ## Change here for fitting
-    f = 6/(((n_monomers)**2) - 1)
+    f = 6/(((n_bonds)**2) - 1)
     
     b_pl = 1 - (1.66*(h_s**0.78))
     
@@ -683,15 +1126,15 @@ def zimm_relax(x, tr_1, h_s, n_monomers):
     a1_sv = []
     cor_times = []
     
-    for i in range(n_monomers):
+    for i in range(n_bonds):
         
         #print(i)
         
-        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_monomers)))**2)
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
         
         #print(atv_i)
         
-        asg_i = atv_i*b_pl*(((i+1)/n_monomers)**sigma) 
+        asg_i = atv_i*b_pl*(((i+1)/n_bonds)**sigma) 
         
         #print(asg_i)
         
@@ -703,71 +1146,70 @@ def zimm_relax(x, tr_1, h_s, n_monomers):
             
             trouse_i = (asg_i/asg_i)*tr_1
             
-            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
             
         elif i != 0:
             
             trouse_i = (cr_ls[0]/asg_i)*tr_1
             
-            cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
             
     return f*np.sum(cor_times)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def fit_rz_relax(xdata, ydata, n_monomers):
+def zimm_relax_func(x, tr_1, h_s, n_bonds):
     
-    assert xdata.shape[0] == ydata.shape[0], "xdata and ydata must be the same shape."
+    ## Change here for fitting
+    f = 6/(((n_bonds)**2) - 1)
     
-    def res_poly(variabls, xnp, ynp):
-        hs_np = variabls[0]
-        tr1_np = variabls[1]
-        n_m = n_monomers
-        testnp = []
-        for i in range(len(xnp)):
-            model_ynp = rouse_relax(xnp[i], hs_np, tr1_np, n_m)
-            testnp.append(ynp[i] - model_ynp)
+    b_pl = 1 - (1.66*(h_s**0.78))
     
-        tt_n30 = np.array(testnp)
-
-        return tt_n30
+    sigma = -1.40*(h_s**0.78)
     
-    x1 = np.array([0,0])
-    pfit, pcov, infodict, errmsg, success = leastsq(res_poly, x1, args=(xdata, ydata), full_output=1)
-
-    fit_dets = (pfit, pcov, infodict, errmsg, success)
-    # Residual variance
-    a = np.sum((res_poly(pfit, xdata, ydata))**2)/(len(ydata)- 2)
+    cr_ls = []
+    a1_sv = []
+    t_zimm = []
+    cor_times = []
     
-    pc_new = pcov*a
-    
-    stdev_kval = np.sqrt(np.diag(pc_new))
-    
-    print("h[s]: "+str(pfit[0]))
-    
-    print("1st relaxation time: "+str(pfit[1]))
-    
-    return pfit, stdev_kval, fit_dets
+    for i in range(n_bonds):
+        
+        #print(i)
+        
+        atv_i = 4*((np.sin(((i+1)*np.pi)/(2*n_bonds)))**2)
+        
+        #print(atv_i)
+        
+        asg_i = atv_i*b_pl*(((i+1)/n_bonds)**sigma)
+        
+        #print(asg_i)
+        
+        if i == 0:
+            
+            a1_sv.append(atv_i)
+            
+            cr_ls.append(asg_i)
+            
+            trouse_i = (asg_i/asg_i)*tr_1
+            
+            t_zimm.append(trouse_i)
+            
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
+            
+        elif i != 0:
+            
+            trouse_i = (cr_ls[0]/asg_i)*tr_1
+            
+            t_zimm.append(trouse_i)
+            
+            cr_ls.append(asg_i)
+            
+            #cor_times.append((1/atv_i)*np.exp(-x/trouse_i))
+            
+            cor_times.append((1/asg_i)*np.exp(-x/trouse_i))
+            
+    return f*np.sum(cor_times), t_zimm, cr_ls

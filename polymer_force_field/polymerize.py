@@ -12,27 +12,24 @@ import pandas as pd
 import mdtraj as md
 
 # specify path to starting configuration file
-# PEG directory suppscr/pfaendtner/cnyambura/NEE_home/BSA_Nano_Prep/PEG_chain/nchains_PEG_water 
+data_dir = op.join(op.dirname(__file__), '/gscratch/pfaendtner/cnyambura/NEE_home_mox/BSA_Nano_Prep/PLGA_PEG_chain/charge_poly_pp/ffmaker_PP')
+#conf_file = op.join(data_dir, 'N3test.pdb')
+#outfile = 'plgaN8_pp.pdb'
 
-data_dir = op.join(op.dirname(__file__), '/suppscr/pfaendtner/cnyambura/NEE_home/BSA_Nano_Prep/PEG_chain/nchains_PEG_water')
-conf_file = op.join(data_dir, 'PEG.pdb')
-outfile = 'PEG_10.pdb'
+conf_file = op.join(data_dir, 'PLG.pdb')
+outfile = 'plga_n15.pdb'
 
 # unique residue types in conf_file
-start_cap_name = 'sPEG'
-repeat_name = 'PEG'
-n = 8  # number of repeat internal monomers, EXCLUDING the starting and terminal cap groups 
-
-## flip_repeat is subject to change depending on monomer moieties
-
-## For PLGA and PCB, flip_repeat should be np.pi/2
-#flip_repeat = np.pi/2
-
-## For PEG, flip_repeat should be np.pi  
-flip_repeat = np.pi  # angle to rotate each repeat unit 
-
-end_cap_name = 'tPEG'
+start_cap_name = 'sPLG'
+repeat_name = 'PLG'
+n = 13  # number of repeat internal monomers, EXCLUDING the starting and terminal cap groups 
+flip_repeat = (9*np.pi)/18  # angle to rotate each repeat unit
+end_cap_name = 'tPLG'
 # add rotation for bulky sidechains
+
+# For PEG trimer for PLGA-PEG 
+#flip_repeat = (9*np.pi)/18  # angle to rotate each PLGA repeat unit
+#flip_repeat = (13*np.pi)/18  # angle to rotate each PEG repeat unit
 
 # three reference atoms to translate and rotate monomer
 # to polymerization
@@ -43,17 +40,17 @@ end_cap_name = 'tPEG'
 #                  'resname PCB and name C2',
 #                  'resname eCAP and name C1']
 
-#For PLGA
-#ref_atom_names = ['resname sPLG and name O9',
-#                  'resname PLG and name C5',
-#                  'resname PLG and name O5',
-#                  'resname tPLG and name C5']
 
+#For PLGA
+ref_atom_names = ['resname sPLG and name O9',
+                  'resname PLG and name C5',
+                  'resname PLG and name O5',
+                  'resname tPLG and name C5']
 
 # For PEG, three reference atoms are sufficient for replication of internal monomers
-ref_atom_names = ['resname sPEG and name O1',
-                  'resname PEG and name O2',
-                  'resname tPEG and name O3']
+#ref_atom_names = ['resname sPLG and name O2',
+#                  'resname PEG and name O2',
+#                  'resname sPEG and name C2']
 
 # read conf_file with mdtraj
 monomer = md.load(conf_file)
@@ -102,6 +99,7 @@ angle = math.acos(np.dot(original, target)
 coordinates = rotate(coordinates, normal, angle)
 
 # 3. rotate so second ref atom has z=0
+#print(coordinates[ref_atoms[1]])
 original = coordinates[ref_atoms[1]]
 original = np.array([0,
                      coordinates[ref_atoms[1]][0, 1],
@@ -111,7 +109,6 @@ target = np.array([0, 1, 0])
 normal = np.cross(original, target)[0]
 angle = math.acos(np.dot(original, target)
                   / (np.linalg.norm(original) * np.linalg.norm(target)))
-
 # rotate coordinates
 coordinates = rotate(coordinates, normal, angle)
 
@@ -124,21 +121,17 @@ table['z'] = coordinates[:, 2] * 10
 my_polymer = [table.iloc[start_cap]]
 
 # get x and y values for repeat translation
-
-# xshift and yshift will be different for for different polymer molecules 
-
-## This xshift, yshift distance calculations is for PCB trimer ref atoms (4 ref atoms)
 #x_shift = (coordinates[ref_atoms[3]]
 #           - coordinates[ref_atoms[1]])[0, 0] * 10
 #y_shift = (coordinates[ref_atoms[2]]
 #           - coordinates[ref_atoms[1]])[0, 1] * 10
 
 ## This xshift, yshift distance calc. is for PLGA trimer ref atoms (4 ref atoms)
-#x_shift = (coordinates[ref_atoms[3]] - coordinates[ref_atoms[1]])[0,0] * 10.4
-#y_shift = (coordinates[ref_atoms[2]] - coordinates[ref_atoms[1]])[0,1]
+x_shift = (coordinates[ref_atoms[3]] - coordinates[ref_atoms[1]])[0,0] * 10.4
+y_shift = (coordinates[ref_atoms[2]] - coordinates[ref_atoms[1]])[0,1]
 
 ## This xshift, yshift distance calculations is for PEG trimer (3 ref atoms)
-x_shift, y_shift, _  = (coordinates[ref_atoms[2]] - coordinates[ref_atoms[1]])[0] * 10
+#x_shift, y_shift, _  = (coordinates[ref_atoms[2]] - coordinates[ref_atoms[1]])[0] * 20
 
 # 4. append repeats to my_polymer
 for repeat_idx in range(0, n):
@@ -178,7 +171,7 @@ new_cap.x += x_shift * (n - 1)
 if n % 2 == 0 and flip_repeat:
     # translate by y distance from reference axis
     new_cap.y += y_shift
-    #flip around ref2 - ref0 axis
+    # flip around ref2 - ref0 axis
     axis = (coordinates[ref_atoms[2]]
             - coordinates[ref_atoms[0]])[0]
     flipped = rotate(new_cap.loc[:, ['x', 'y', 'z']].values,
